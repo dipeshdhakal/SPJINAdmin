@@ -51,6 +51,7 @@ struct UserToken: Content, Authenticatable, JWTPayload {
 struct UserCredentials: Content {
     var username: String
     var password: String
+    var redirect: String?
 }
 
 // User Authentication

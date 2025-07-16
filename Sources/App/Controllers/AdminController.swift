@@ -5,24 +5,28 @@ import Leaf
 struct AdminController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
         routes.get(use: dashboard)
+        
+        // Books
         routes.get("books", use: booksIndex)
         routes.get("books", "new", use: bookForm)
+        routes.get("books", ":bookID", "edit", use: bookForm)  // Reuse same form handler
         routes.post("books", use: bookCreate)
-        routes.get("books", ":bookID", "edit", use: bookEditForm)
         routes.post("books", ":bookID", use: bookUpdate)
         routes.post("books", ":bookID", "delete", use: bookDelete)
         
+        // Prakarans
         routes.get("prakarans", use: prakaransIndex)
         routes.get("prakarans", "new", use: prakaranForm)
+        routes.get("prakarans", ":prakaranID", "edit", use: prakaranForm)  // Reuse same form handler
         routes.post("prakarans", use: prakaranCreate)
-        routes.get("prakarans", ":prakaranID", "edit", use: prakaranEditForm)
         routes.post("prakarans", ":prakaranID", use: prakaranUpdate)
         routes.post("prakarans", ":prakaranID", "delete", use: prakaranDelete)
         
+        // Chaupais
         routes.get("chaupais", use: chaupaisIndex)
         routes.get("chaupais", "new", use: chaupaiForm)
+        routes.get("chaupais", ":chaupaiID", "edit", use: chaupaiForm)  // Reuse same form handler
         routes.post("chaupais", use: chaupaiCreate)
-        routes.get("chaupais", ":chaupaiID", "edit", use: chaupaiEditForm)
         routes.post("chaupais", ":chaupaiID", use: chaupaiUpdate)
         routes.post("chaupais", ":chaupaiID", "delete", use: chaupaiDelete)
     }
@@ -66,30 +70,38 @@ struct AdminController: RouteCollection {
     }
     
     func bookForm(req: Request) async throws -> View {
-        return try await req.view.render("books/form", BookFormContext())
+        let book: Book?
+        if let bookID = req.parameters.get("bookID", as: Int.self),
+           bookID > 0 {
+            book = try await Book.find(bookID, on: req.db)
+        } else {
+            book = nil
+        }
+        
+        let context = BookFormContext(
+            book: book.map { BookData(from: $0) }
+        )
+        
+        return try await req.view.render("books/form", context)
     }
     
     func bookCreate(req: Request) async throws -> Response {
         let formData = try req.content.decode(BookFormData.self)
         
         let maxID = try await Book.query(on: req.db).max(\.$id) ?? -1
-        let book = Book(id: maxID + 1, bookOrder: formData.bookOrder, bookName: formData.bookName)
+        let book = Book(
+            id: maxID + 1,
+            bookOrder: formData.bookOrder,
+            bookName: formData.bookName
+        )
         
         try await book.save(on: req.db)
         return req.redirect(to: "/admin/books")
     }
     
-    func bookEditForm(req: Request) async throws -> View {
-        guard let book = try await Book.find(req.parameters.get("bookID"), on: req.db) else {
-            throw Abort(.notFound)
-        }
-        
-        let context = BookFormContext(book: BookData(from: book))
-        return try await req.view.render("books/form", context)
-    }
-    
     func bookUpdate(req: Request) async throws -> Response {
-        guard let book = try await Book.find(req.parameters.get("bookID"), on: req.db) else {
+        guard let bookID = req.parameters.get("bookID", as: Int.self),
+              let book = try await Book.find(bookID, on: req.db) else {
             throw Abort(.notFound)
         }
         
@@ -102,7 +114,8 @@ struct AdminController: RouteCollection {
     }
     
     func bookDelete(req: Request) async throws -> Response {
-        guard let book = try await Book.find(req.parameters.get("bookID"), on: req.db) else {
+        guard let bookID = req.parameters.get("bookID", as: Int.self),
+              let book = try await Book.find(bookID, on: req.db) else {
             throw Abort(.notFound)
         }
         
@@ -143,9 +156,21 @@ struct AdminController: RouteCollection {
     }
     
     func prakaranForm(req: Request) async throws -> View {
+        let prakaran: Prakaran?
+        if let prakaranID = req.parameters.get("prakaranID", as: Int.self) {
+            prakaran = try await Prakaran.query(on: req.db)
+                .filter(\.$id == prakaranID)
+                .with(\.$book)
+                .first()
+        } else {
+            prakaran = nil
+        }
+        
         let books = try await Book.query(on: req.db).sort(\.$bookOrder).all()
-        let context = PrakaranFormContext(books: books.map { BookData(from: $0) })
-        return try await req.view.render("prakarans/form", context)
+        return try await req.view.render("prakarans/form", PrakaranFormContext(
+            prakaran: prakaran.map { PrakaranData(from: $0) },
+            books: books.map { BookData(from: $0) }
+        ))
     }
     
     func prakaranCreate(req: Request) async throws -> Response {
@@ -165,20 +190,39 @@ struct AdminController: RouteCollection {
     }
     
     func prakaranEditForm(req: Request) async throws -> View {
-        guard let prakaran = try await Prakaran.find(req.parameters.get("prakaranID"), on: req.db) else {
-            throw Abort(.notFound)
+        // Get the prakaran ID from the URL parameters
+        guard let prakaranID = req.parameters.get("prakaranID", as: Int.self) else {
+            throw Abort(.badRequest, reason: "Invalid prakaran ID")
         }
         
+        // Fetch the prakaran with its book
+        guard prakaranID > 0,
+              let prakaran = try await Prakaran.query(on: req.db)
+                .filter(\.$id == prakaranID)
+                .with(\.$book)
+                .first() else {
+            // If prakaran is not found or ID is 0, redirect to the new prakaran form
+            let books = try await Book.query(on: req.db).sort(\.$bookOrder).all()
+            let context = PrakaranFormContext(books: books.map { BookData(from: $0) })
+            return try await req.view.render("prakarans/form", context)
+        }
+        
+        // Fetch all books for the form's select dropdown
         let books = try await Book.query(on: req.db).sort(\.$bookOrder).all()
-        let context: PrakaranFormContext = PrakaranFormContext(
+        
+        // Create the context with the prakaran and books
+        let context = PrakaranFormContext(
             prakaran: PrakaranData(from: prakaran),
             books: books.map { BookData(from: $0) }
         )
+        
+        // Render the form view
         return try await req.view.render("prakarans/form", context)
     }
     
     func prakaranUpdate(req: Request) async throws -> Response {
-        guard let prakaran = try await Prakaran.find(req.parameters.get("prakaranID"), on: req.db) else {
+        guard let prakaranID = req.parameters.get("prakaranID", as: Int.self),
+              let prakaran = try await Prakaran.find(prakaranID, on: req.db) else {
             throw Abort(.notFound)
         }
         
@@ -193,7 +237,8 @@ struct AdminController: RouteCollection {
     }
     
     func prakaranDelete(req: Request) async throws -> Response {
-        guard let prakaran = try await Prakaran.find(req.parameters.get("prakaranID"), on: req.db) else {
+        guard let prakaranID = req.parameters.get("prakaranID", as: Int.self),
+              let prakaran = try await Prakaran.find(prakaranID, on: req.db) else {
             throw Abort(.notFound)
         }
         
@@ -247,14 +292,26 @@ struct AdminController: RouteCollection {
     }
     
     func chaupaiForm(req: Request) async throws -> View {
+        let chaupai: Chaupai?
+        if let chaupaiID = req.parameters.get("chaupaiID", as: Int.self) {
+            chaupai = try await Chaupai.query(on: req.db)
+                .filter(\.$id == chaupaiID)
+                .with(\.$prakaran) { prakaran in
+                    prakaran.with(\.$book)
+                }
+                .first()
+        } else {
+            chaupai = nil
+        }
+        
         let books = try await Book.query(on: req.db).sort(\.$bookOrder).all()
         let prakarans = try await Prakaran.query(on: req.db).with(\.$book).sort(\.$prakaranOrder).all()
-        
-        let context: ChaupaiFormContext = ChaupaiFormContext(
+            
+        return try await req.view.render("chaupais/form", ChaupaiFormContext(
+            chaupai: chaupai.map { ChaupaiData(from: $0) },
             books: books.map { BookData(from: $0) },
             prakarans: prakarans.map { PrakaranData(from: $0) }
-        )
-        return try await req.view.render("chaupais/form", context)
+        ))
     }
     
     func chaupaiCreate(req: Request) async throws -> Response {
@@ -275,7 +332,18 @@ struct AdminController: RouteCollection {
     }
     
     func chaupaiEditForm(req: Request) async throws -> View {
-        guard let chaupai = try await Chaupai.find(req.parameters.get("chaupaiID"), on: req.db) else {
+        guard let chaupaiID = req.parameters.get("chaupaiID", as: Int.self) else {
+            throw Abort(.badRequest)
+        }
+        
+        let chaupai = try await Chaupai.query(on: req.db)
+            .filter(\.$id == chaupaiID)
+            .with(\.$prakaran) { prakaran in
+                prakaran.with(\.$book)
+            }
+            .first()
+        
+        guard let chaupai = chaupai else {
             throw Abort(.notFound)
         }
         
@@ -291,7 +359,8 @@ struct AdminController: RouteCollection {
     }
     
     func chaupaiUpdate(req: Request) async throws -> Response {
-        guard let chaupai = try await Chaupai.find(req.parameters.get("chaupaiID"), on: req.db) else {
+        guard let chaupaiID = req.parameters.get("chaupaiID", as: Int.self),
+              let chaupai = try await Chaupai.find(chaupaiID, on: req.db) else {
             throw Abort(.notFound)
         }
         
@@ -307,7 +376,8 @@ struct AdminController: RouteCollection {
     }
     
     func chaupaiDelete(req: Request) async throws -> Response {
-        guard let chaupai = try await Chaupai.find(req.parameters.get("chaupaiID"), on: req.db) else {
+        guard let chaupaiID = req.parameters.get("chaupaiID", as: Int.self),
+              let chaupai = try await Chaupai.find(chaupaiID, on: req.db) else {
             throw Abort(.notFound)
         }
         

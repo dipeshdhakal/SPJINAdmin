@@ -10,8 +10,9 @@ struct AuthController: RouteCollection {
         auth.post("logout", use: logout)
     }
     
-    func loginPage(req: Request) throws -> EventLoopFuture<View> {
-        return req.view.render("auth/login")
+    func loginPage(req: Request) async throws -> View {
+        let redirectURL = req.query[String.self, at: "redirect"]
+        return try await req.view.render("auth/login", ["redirect": redirectURL])
     }
     
     func login(req: Request) async throws -> Response {
@@ -28,32 +29,48 @@ struct AuthController: RouteCollection {
             throw Abort(.unauthorized, reason: "Invalid username or password")
         }
         
-        // Create JWT token
-        let expiration = ExpirationClaim(value: Date().addingTimeInterval(86400)) // 24 hours
+        // Create JWT token with 24 hour expiration
+        let expiration = Date().addingTimeInterval(86400)
         let userID = try user.requireID()
-        let sub = SubjectClaim(value: userID.uuidString)
-        let payload = UserToken(exp: expiration, sub: sub, username: user.username)
-        
-        let token = try req.jwt.sign(payload)
-        
-        // Set cookie
-        let cookie = HTTPCookies.Value(
-            string: token,
-            expires: Date().addingTimeInterval(86400), // 24 hours
-            maxAge: nil,
-            domain: nil,
-            path: "/",
-            isSecure: false,
-            isHTTPOnly: true,
-            sameSite: HTTPCookies.SameSitePolicy.lax
+        let payload = UserToken(
+            exp: ExpirationClaim(value: expiration),
+            sub: SubjectClaim(value: userID.uuidString),
+            username: user.username
         )
         
-        let response = req.redirect(to: "/admin")
+        // Sign the token
+        let token = try req.jwt.sign(payload)
+        print("Generated JWT token: \(token.prefix(50))...")
+        
+        // Set cookie with proper configuration
+        let cookie = HTTPCookies.Value(
+            string: token,
+            expires: expiration,
+            maxAge: 86400,
+            domain: nil,
+            path: "/",
+            isSecure: false, // Set to true in production with HTTPS
+            isHTTPOnly: true,
+            sameSite: .lax
+        )
+        
+        // Create response with redirect
+        let redirectURL = credentials.redirect?.isEmpty == false ? credentials.redirect! : "/admin"
+        let response = req.redirect(to: redirectURL)
+        
+        // Set the cookie
         response.cookies["auth_token"] = cookie
+        response.headers.add(name: .cacheControl, value: "no-cache, private")
+        
+        print("Login successful for user: \(user.username)")
+        print("Setting auth_token cookie. Token length: \(token.count)")
+        print("Redirecting to: \(redirectURL)")
+        
         return response
     }
     
     func logout(req: Request) throws -> Response {
+        print("Logging out user")
         let response = req.redirect(to: "/auth/login")
         response.cookies["auth_token"] = HTTPCookies.Value(
             string: "",
@@ -63,8 +80,9 @@ struct AuthController: RouteCollection {
             path: "/",
             isSecure: false,
             isHTTPOnly: true,
-            sameSite: HTTPCookies.SameSitePolicy.lax
+            sameSite: .lax
         )
+        print("Auth token cookie cleared")
         return response
     }
 }

@@ -16,12 +16,12 @@ func routes(_ app: Application) throws {
     // Chaupai routes
     try api.register(collection: ChaupaiController())
     
-    // Protected Admin routes
+    // Protected Admin routes - all admin functionality requires authentication
     let admin = app.grouped("admin").grouped(AuthMiddleware())
     try admin.register(collection: AdminController())
     
-    // Root redirect to admin
-    app.get { req in
+    // Root redirect to admin (also protected)
+    app.grouped(AuthMiddleware()).get { req in
         req.redirect(to: "/admin")
     }
 }

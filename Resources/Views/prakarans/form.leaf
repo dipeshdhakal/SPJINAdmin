@@ -1,5 +1,5 @@
 #extend("layout"):
-#export("title", #if(prakaran):"Edit Prakaran"#else:"New Prakaran"#endif)
+#export("title", "#if(prakaran):Edit Prakaran#else:New Prakaran#endif")
 #export("page", "prakarans")
 #export("content"):
 
@@ -15,13 +15,13 @@
         </div>
     </div>
     <div class="mt-5 md:col-span-2 md:mt-0">
-        <form method="POST" action="#if(prakaran):/admin/prakarans/#(prakaran.prakaranID)#else:/admin/prakarans#endif">
+        <form method="POST" action="/admin/prakarans#if(prakaran):/#(prakaran.prakaranID)#endif">
             <div class="overflow-hidden shadow sm:rounded-md">
                 <div class="bg-white px-4 py-5 sm:p-6">
                     <div class="grid grid-cols-6 gap-6">
                         <div class="col-span-6 sm:col-span-3">
                             <label for="prakaranOrder" class="block text-sm font-medium text-gray-700">Prakaran Order</label>
-                            <input type="number" name="prakaranOrder" id="prakaranOrder" value="#if(prakaran):#(prakaran.prakaranOrder)#endif" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm">
+                            <input type="number" name="prakaranOrder" id="prakaranOrder" value="#if(prakaran):#(prakaran.prakaranOrder)#else:0#endif" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm">
                         </div>
 
                         <div class="col-span-6 sm:col-span-3">
@@ -29,19 +29,19 @@
                             <select name="bookID" id="bookID" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm">
                                 <option value="">Select a book</option>
                                 #for(book in books):
-                                <option value="#(book.bookID)" #if(prakaran && prakaran.bookID == book.bookID):selected#endif>#(book.bookName)</option>
+                                <option value="#(book.bookID)" #if(prakaran && prakaran.bookID == book.bookID):selected#elseif(books.first && books.first.bookID == book.bookID):selected#endif>#(book.bookName)</option>
                                 #endfor
                             </select>
                         </div>
 
                         <div class="col-span-6">
                             <label for="prakaranName" class="block text-sm font-medium text-gray-700">Prakaran Name</label>
-                            <input type="text" name="prakaranName" id="prakaranName" value="#if(prakaran):#(prakaran.prakaranName)#endif" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm">
+                            <input type="text" name="prakaranName" id="prakaranName" value="#if(prakaran):#(prakaran.prakaranName)#else:#endif" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm">
                         </div>
 
                         <div class="col-span-6">
                             <label for="prakaranDetails" class="block text-sm font-medium text-gray-700">Prakaran Details</label>
-                            <textarea name="prakaranDetails" id="prakaranDetails" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm" placeholder="Optional details about this prakaran...">#if(prakaran):#(prakaran.prakaranDetails)#endif</textarea>
+                            <textarea name="prakaranDetails" id="prakaranDetails" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm" placeholder="Optional details about this prakaran...">#if(prakaran):#(prakaran.prakaranDetails)#else:#endif</textarea>
                         </div>
                     </div>
                 </div>

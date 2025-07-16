@@ -16,7 +16,9 @@ struct PrakaranController: RouteCollection {
     }
     
     func index(req: Request) async throws -> [Prakaran.Public] {
-        var query = Prakaran.query(on: req.db).with(\.$chaupais)
+        var query = Prakaran.query(on: req.db)
+            .with(\.$chaupais)
+            .with(\.$book)
         
         // Apply filters
         if let bookID = req.query[Int.self, at: "bookID"] {
@@ -40,11 +42,15 @@ struct PrakaranController: RouteCollection {
     }
     
     func show(req: Request) async throws -> Prakaran.Public {
-        guard let prakaran = try await Prakaran.find(req.parameters.get("prakaranID"), on: req.db) else {
+        guard let prakaranID = req.parameters.get("prakaranID", as: Int.self),
+              let prakaran = try await Prakaran.query(on: req.db)
+                .filter(\.$id == prakaranID)
+                .with(\.$chaupais)
+                .with(\.$book)
+                .first() else {
             throw Abort(.notFound)
         }
         
-        try await prakaran.$chaupais.load(on: req.db)
         return Prakaran.Public(from: prakaran, chaupaiCount: prakaran.chaupais.count)
     }
     
@@ -70,14 +76,27 @@ struct PrakaranController: RouteCollection {
         )
         
         try await prakaran.save(on: req.db)
-        return Prakaran.Public(from: prakaran)
+        
+        // Reload with book relationship for response
+        guard let savedPrakaran = try await Prakaran.query(on: req.db)
+            .filter(\.$id == prakaran.id!)
+            .with(\.$book)
+            .first() else {
+            throw Abort(.internalServerError, reason: "Failed to reload saved prakaran")
+        }
+        
+        return Prakaran.Public(from: savedPrakaran)
     }
     
     func update(req: Request) async throws -> Prakaran.Public {
         try Prakaran.Update.validate(content: req)
         let update = try req.content.decode(Prakaran.Update.self)
         
-        guard let prakaran = try await Prakaran.find(req.parameters.get("prakaranID"), on: req.db) else {
+        guard let prakaranID = req.parameters.get("prakaranID", as: Int.self),
+              let prakaran = try await Prakaran.query(on: req.db)
+                .filter(\.$id == prakaranID)
+                .with(\.$book)
+                .first() else {
             throw Abort(.notFound)
         }
         
@@ -103,7 +122,8 @@ struct PrakaranController: RouteCollection {
     }
     
     func delete(req: Request) async throws -> HTTPStatus {
-        guard let prakaran = try await Prakaran.find(req.parameters.get("prakaranID"), on: req.db) else {
+        guard let prakaranID = req.parameters.get("prakaranID", as: Int.self),
+              let prakaran = try await Prakaran.find(prakaranID, on: req.db) else {
             throw Abort(.notFound)
         }
         
@@ -112,7 +132,8 @@ struct PrakaranController: RouteCollection {
     }
     
     func getChaupais(req: Request) async throws -> [Chaupai.Public] {
-        guard let prakaran = try await Prakaran.find(req.parameters.get("prakaranID"), on: req.db) else {
+        guard let prakaranID = req.parameters.get("prakaranID", as: Int.self),
+              let prakaran = try await Prakaran.find(prakaranID, on: req.db) else {
             throw Abort(.notFound)
         }
         
@@ -131,11 +152,11 @@ struct PrakaranController: RouteCollection {
                 }
             }
         }
-        
-        let chaupais = try await query
+         let chaupais = try await query
             .sort(\.$chaupaiNumber)
+            .with(\.$prakaran)
             .all()
-        
+
         return chaupais.map(Chaupai.Public.init)
     }
 }

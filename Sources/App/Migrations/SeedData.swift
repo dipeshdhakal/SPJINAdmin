@@ -1,37 +1,38 @@
 import Fluent
+import SQLKit
+import Foundation
 
 struct SeedData: AsyncMigration {
     func prepare(on database: Database) async throws {
-        // Sample seed data - you can customize this with your actual data
+        guard let sql = database as? SQLDatabase else {
+            fatalError("Database must be SQL compatible")
+        }
         
-        // Create sample books
-        let book1 = Book(id: 0, bookOrder: 1, bookName: "Sample Book 1")
-        let book2 = Book(id: 1, bookOrder: 2, bookName: "Sample Book 2")
+        // Read SQL file content
+        let fileURL = URL(fileURLWithPath: #file)
+            .deletingLastPathComponent() // Migrations directory
+            .deletingLastPathComponent() // App directory
+            .deletingLastPathComponent() // Sources directory
+            .deletingLastPathComponent() // SPJIN directory
+            .appendingPathComponent("Resources")
+            .appendingPathComponent("seed.sql")
         
-        try await book1.save(on: database)
-        try await book2.save(on: database)
+        let seedSQL = try String(contentsOf: fileURL, encoding: .utf8)
         
-        // Create sample prakarans
-        let prakaran1 = Prakaran(id: 0, prakaranOrder: 1, prakaranName: "Sample Prakaran 1", bookID: 0)
-        let prakaran2 = Prakaran(id: 1, prakaranOrder: 2, prakaranName: "Sample Prakaran 2", bookID: 0)
-        let prakaran3 = Prakaran(id: 2, prakaranOrder: 1, prakaranName: "Sample Prakaran 3", bookID: 1)
+        // Split SQL into individual statements
+        let statements = seedSQL
+            .components(separatedBy: ";")
+            .map { $0.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
         
-        try await prakaran1.save(on: database)
-        try await prakaran2.save(on: database)
-        try await prakaran3.save(on: database)
-        
-        // Create sample chaupais
-        let chaupai1 = Chaupai(id: 0, chaupaiNumber: 1, chaupaiName: "Sample Chaupai 1", chaupaiMeaning: "Meaning 1", prakaranID: 0)
-        let chaupai2 = Chaupai(id: 1, chaupaiNumber: 2, chaupaiName: "Sample Chaupai 2", chaupaiMeaning: "Meaning 2", prakaranID: 0)
-        let chaupai3 = Chaupai(id: 2, chaupaiNumber: 1, chaupaiName: "Sample Chaupai 3", chaupaiMeaning: "Meaning 3", favourite: true, prakaranID: 1)
-        
-        try await chaupai1.save(on: database)
-        try await chaupai2.save(on: database)
-        try await chaupai3.save(on: database)
+        // Execute each statement
+        for statement in statements {
+            try await sql.raw(SQLQueryString(statement)).run()
+        }
     }
 
     func revert(on database: Database) async throws {
-        // Remove seed data in reverse order
+        // Remove seed data in reverse order to respect foreign key constraints
         try await Chaupai.query(on: database).delete()
         try await Prakaran.query(on: database).delete()
         try await Book.query(on: database).delete()

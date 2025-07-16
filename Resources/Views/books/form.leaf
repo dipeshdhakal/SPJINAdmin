@@ -1,5 +1,5 @@
 #extend("layout"):
-#export("title", #if(book):"Edit Book"#else:"New Book"#endif)
+#export("title", "#if(book):Edit Book#else:New Book#endif")
 #export("page", "books")
 #export("content"):
 

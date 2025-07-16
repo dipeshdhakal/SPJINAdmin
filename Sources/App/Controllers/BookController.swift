@@ -29,11 +29,14 @@ struct BookController: RouteCollection {
     }
     
     func show(req: Request) async throws -> Book.Public {
-        guard let book = try await Book.find(req.parameters.get("bookID"), on: req.db) else {
+        guard let bookID = req.parameters.get("bookID", as: Int.self),
+              let book = try await Book.query(on: req.db)
+                .filter(\.$id == bookID)
+                .with(\.$prakarans)
+                .first() else {
             throw Abort(.notFound)
         }
         
-        try await book.$prakarans.load(on: req.db)
         return Book.Public(from: book, prakaranCount: book.prakarans.count)
     }
     
@@ -59,7 +62,8 @@ struct BookController: RouteCollection {
         try Book.Update.validate(content: req)
         let update = try req.content.decode(Book.Update.self)
         
-        guard let book = try await Book.find(req.parameters.get("bookID"), on: req.db) else {
+        guard let bookID = req.parameters.get("bookID", as: Int.self),
+              let book = try await Book.find(bookID, on: req.db) else {
             throw Abort(.notFound)
         }
         
@@ -75,7 +79,8 @@ struct BookController: RouteCollection {
     }
     
     func delete(req: Request) async throws -> HTTPStatus {
-        guard let book = try await Book.find(req.parameters.get("bookID"), on: req.db) else {
+        guard let bookID = req.parameters.get("bookID", as: Int.self),
+              let book = try await Book.find(bookID, on: req.db) else {
             throw Abort(.notFound)
         }
         
@@ -84,22 +89,25 @@ struct BookController: RouteCollection {
     }
     
     func getPrakarans(req: Request) async throws -> [Prakaran.Public] {
-        guard let book = try await Book.find(req.parameters.get("bookID"), on: req.db) else {
+        guard let bookID = req.parameters.get("bookID", as: Int.self),
+              let book = try await Book.find(bookID, on: req.db) else {
             throw Abort(.notFound)
         }
         
         let prakarans = try await book.$prakarans.query(on: req.db)
             .with(\.$chaupais)
+            .with(\.$book)
             .sort(\.$prakaranOrder)
             .all()
-        
+
         return prakarans.map { prakaran in
             Prakaran.Public(from: prakaran, chaupaiCount: prakaran.chaupais.count)
         }
     }
     
     func getChaupais(req: Request) async throws -> [Chaupai.Public] {
-        guard let book = try await Book.find(req.parameters.get("bookID"), on: req.db) else {
+        guard let bookID = req.parameters.get("bookID", as: Int.self),
+              let book = try await Book.find(bookID, on: req.db) else {
             throw Abort(.notFound)
         }
         
@@ -120,11 +128,11 @@ struct BookController: RouteCollection {
                 }
             }
         }
-        
-        let chaupais = try await query
+         let chaupais = try await query
             .sort(\.$chaupaiNumber)
+            .with(\.$prakaran)
             .all()
-        
+
         return chaupais.map(Chaupai.Public.init)
     }
 }
