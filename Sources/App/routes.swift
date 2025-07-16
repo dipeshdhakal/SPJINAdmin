@@ -7,21 +7,23 @@ func routes(_ app: Application) throws {
     // API Routes (public for now, can be protected later)
     let api = app.grouped("api", "v1")
     
-    // Book routes
-    try api.register(collection: BookController())
-    
-    // Prakaran routes
-    try api.register(collection: PrakaranController())
-    
-    // Chaupai routes
-    try api.register(collection: ChaupaiController())
+    // API Routes - public endpoints
+    try api.register(collection: APIBookController())
+    try api.register(collection: APIPrakaranController())
+    try api.register(collection: APIChaupaiController())
     
     // Protected Admin routes - all admin functionality requires authentication
-    let admin = app.grouped("admin").grouped(AuthMiddleware())
-    try admin.register(collection: AdminController())
+    let adminAuth = app.grouped(AuthMiddleware())
+    let admin = adminAuth.grouped("admin")
     
-    // Root redirect to admin (also protected)
+    // Admin web routes
+    try admin.register(collection: DashboardController())
+    try admin.register(collection: WebBookController())
+    try admin.register(collection: WebPrakaranController())
+    try admin.register(collection: WebChaupaiController())
+    
+    // Root redirect to admin dashboard (also protected)
     app.grouped(AuthMiddleware()).get { req in
-        req.redirect(to: "/admin")
+        req.redirect(to: "/admin/dashboard")
     }
 }

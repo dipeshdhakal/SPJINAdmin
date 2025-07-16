@@ -1,6 +1,6 @@
 import Fluent
 import Vapor
-import JWT
+@preconcurrency import JWT
 
 final class User: Model, Content {
     static let schema = "users"
@@ -28,6 +28,15 @@ final class User: Model, Content {
         self.passwordHash = passwordHash
         self.createdAt = Date()
         self.updatedAt = Date()
+    }
+    
+    func verify(password: String) throws -> Bool {
+        print("Verifying password for user: \(username)")
+        print("Stored hash: \(passwordHash)")
+        print("Verifying against provided password: \(password)")
+        let result = try Bcrypt.verify(password, created: passwordHash)
+        print("Password verification result: \(result)")
+        return result
     }
 }
 
@@ -58,8 +67,4 @@ struct UserCredentials: Content {
 extension User: ModelAuthenticatable {
     static let usernameKey = \User.$username
     static let passwordHashKey = \User.$passwordHash
-    
-    func verify(password: String) throws -> Bool {
-        try Bcrypt.verify(password, created: self.passwordHash)
-    }
 }

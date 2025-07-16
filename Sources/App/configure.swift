@@ -19,8 +19,8 @@ public func configure(_ app: Application) throws {
     app.migrations.add(CreatePrakarans())
     app.migrations.add(CreateChaupais())
     app.migrations.add(CreateUsers())
-    app.migrations.add(SeedData())
     app.migrations.add(SeedAdminUser())
+    app.migrations.add(SeedData())
     
     // Register middleware
     app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))

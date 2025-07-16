@@ -79,3 +79,30 @@ extension Prakaran {
         }
     }
 }
+
+extension Prakaran: Paginatable {}
+
+struct PrakaransContext: Encodable {
+    let prakarans: [Prakaran.Public]
+    let books: [Book]
+    let selectedBookID: Int?
+    let search: String?
+    let enableAddDelete: Bool
+    let pagination: PaginationInfo?
+    
+    init(
+        prakarans: [Prakaran],
+        books: [Book],
+        selectedBookID: Int?,
+        search: String?,
+        enableAddDelete: Bool,
+        pagination: PaginationInfo? = nil
+    ) {
+        self.prakarans = prakarans.map { Prakaran.Public(from: $0) }
+        self.books = books
+        self.selectedBookID = selectedBookID
+        self.search = search
+        self.enableAddDelete = enableAddDelete
+        self.pagination = pagination
+    }
+}

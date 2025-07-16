@@ -8,28 +8,22 @@
         <h1 class="text-2xl font-semibold text-gray-900">Books</h1>
         <p class="mt-2 text-sm text-gray-700">A list of all books in the system.</p>
     </div>
-    <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none flex items-center gap-4">
-        <!-- Toggle Edit Mode Button -->
-        <button id="toggleEditMode" type="button" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-            <svg id="editIcon" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            <span id="editModeText">Enable Edit Mode</span>
-        </button>
-        <!-- Add Button (hidden by default) -->
-        <a href="/admin/books/new" class="hidden edit-mode-item inline-flex items-center justify-center rounded-md border border-transparent bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 sm:w-auto">
+    <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+        #if(enableAddDelete):
+        <a href="/admin/books/new" class="inline-flex items-center justify-center rounded-md border border-transparent bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 sm:w-auto">
             Add Book
         </a>
+        #endif
     </div>
 </div>
 
 <!-- Search -->
 <div class="mt-8 bg-white p-6 shadow-sm rounded-lg border border-gray-200">
-    <form method="GET" id="filterForm" class="grid grid-cols-1 gap-6">
+    <form method="GET" id="filterForm">
         <div>
-            <label for="search" class="block text-base font-medium text-gray-700 mb-2">Search Books</label>
+            <label for="search" class="block text-base font-medium text-gray-700 mb-2">Search</label>
             <div class="relative">
-                <input type="text" name="search" id="search" value="#(search)" placeholder="Search by book name..." class="block w-full rounded-lg border-gray-300 py-3 pl-4 pr-10 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-base">
+                <input type="text" name="search" id="search" value="#(search)" placeholder="Search books..." class="block w-full rounded-lg border-gray-300 py-3 pl-4 pr-10 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-base">
                 <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                     <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
@@ -37,14 +31,14 @@
                 </div>
             </div>
         </div>
+        #if(search):
+        <div class="mt-4 flex justify-end">
+            <a href="/admin/books" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                Clear Search
+            </a>
+        </div>
+        #endif
     </form>
-    #if(search):
-    <div class="mt-4 flex justify-end">
-        <a href="/admin/books" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-            Clear Search
-        </a>
-    </div>
-    #endif
 </div>
 
 <!-- Loading State -->
@@ -83,30 +77,30 @@
                 <table class="min-w-full divide-y divide-gray-300">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prakarans</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                             <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         #for(book in books):
                         <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">#(book.bookOrder)</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#(book.bookName)</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                #if(book.prakaranCount):
-                                    <a href="/admin/prakarans?bookID=#(book.bookID)" class="text-blue-600 hover:text-blue-900">#(book.prakaranCount) prakarans</a>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                #if(book.bookDescription):
+                                    <div class="max-w-xs truncate">#(book.bookDescription)</div>
                                 #else:
-                                    0 prakarans
+                                    <span class="text-gray-400">No description</span>
                                 #endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <div class="hidden edit-mode-item">
-                                    <a href="/admin/books/#(book.bookID)/edit" class="text-purple-600 hover:text-purple-900 mr-4">Edit</a>
+                                <div class="flex justify-end items-center space-x-4">
+                                    <a href="/admin/books/#(book.bookID)/edit" class="text-purple-600 hover:text-purple-900">Edit</a>
+                                    #if(enableAddDelete):
                                     <form method="POST" action="/admin/books/#(book.bookID)/delete" class="inline" onsubmit="return confirm('Are you sure you want to delete this book?')">
                                         <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
                                     </form>
+                                    #endif
                                 </div>
                             </td>
                         </tr>
@@ -116,9 +110,11 @@
                 #if(count(books) == 0):
                 <div class="text-center py-12">
                     <p class="text-gray-500">No books found.</p>
-                    <a href="/admin/books/new" class="hidden edit-mode-item mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-purple-600 bg-purple-100 hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                    #if(enableAddDelete):
+                    <a href="/admin/books/new" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-purple-600 bg-purple-100 hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
                         Add your first book
                     </a>
+                    #endif
                 </div>
                 #endif
             </div>
@@ -133,7 +129,6 @@
     const errorState = document.getElementById('error-state');
     const dataContainer = document.getElementById('data-container');
 
-    // Add event listeners to all form controls
     form.querySelectorAll('input').forEach(element => {
         element.addEventListener('input', handleFormChange);
     });
@@ -167,7 +162,6 @@
                     dataContainer.innerHTML = newDataContainer.innerHTML;
                     hideLoading();
                     hideError();
-                    // Update URL without page reload
                     window.history.pushState({}, '', window.location.pathname + '?' + queryString);
                 } else {
                     throw new Error('Invalid response format');
@@ -204,63 +198,6 @@
     function retryLoading() {
         submitForm();
     }
-
-    // Edit mode handling
-    let isEditMode = false;
-    const toggleButton = document.getElementById('toggleEditMode');
-    const editModeText = document.getElementById('editModeText');
-    const editModeItems = document.querySelectorAll('.edit-mode-item');
-    const editIcon = document.getElementById('editIcon');
-
-    function updateEditModeUI() {
-        editModeItems.forEach(item => {
-            if (isEditMode) {
-                item.classList.remove('hidden');
-            } else {
-                item.classList.add('hidden');
-            }
-        });
-
-        editModeText.textContent = isEditMode ? 'Disable Edit Mode' : 'Enable Edit Mode';
-        
-        // Update icon
-        if (isEditMode) {
-            editIcon.innerHTML = `
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            `;
-        } else {
-            editIcon.innerHTML = `
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            `;
-        }
-
-        // Toggle button appearance
-        toggleButton.classList.toggle('bg-purple-600', isEditMode);
-        toggleButton.classList.toggle('text-white', isEditMode);
-        toggleButton.classList.toggle('hover:bg-purple-700', isEditMode);
-        toggleButton.classList.toggle('bg-white', !isEditMode);
-        toggleButton.classList.toggle('text-gray-700', !isEditMode);
-        toggleButton.classList.toggle('hover:bg-gray-50', !isEditMode);
-        toggleButton.classList.toggle('border-transparent', isEditMode);
-        toggleButton.classList.toggle('border-gray-300', !isEditMode);
-    }
-
-    toggleButton.addEventListener('click', () => {
-        isEditMode = !isEditMode;
-        updateEditModeUI();
-        
-        // Store the edit mode state in localStorage
-        localStorage.setItem('adminEditMode', isEditMode.toString());
-    });
-
-    // Initialize edit mode from localStorage
-    window.addEventListener('DOMContentLoaded', () => {
-        const storedEditMode = localStorage.getItem('adminEditMode');
-        if (storedEditMode !== null) {
-            isEditMode = storedEditMode === 'true';
-            updateEditModeUI();
-        }
-    });
 </script>
 
 #endexport

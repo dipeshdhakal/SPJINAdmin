@@ -82,3 +82,39 @@ extension Chaupai {
         }
     }
 }
+
+extension Chaupai: Paginatable {}
+
+struct ChaupaisContext: Encodable {
+    let chaupais: [Chaupai.Public]
+    let books: [Book]
+    let prakarans: [Prakaran]
+    let selectedBookID: Int?
+    let selectedPrakaranID: Int?
+    let selectedFavourite: Bool?
+    let search: String?
+    let enableAddDelete: Bool
+    let pagination: PaginationInfo?
+    
+    init(
+        chaupais: [Chaupai],
+        books: [Book],
+        prakarans: [Prakaran],
+        selectedBookID: Int?,
+        selectedPrakaranID: Int?,
+        selectedFavourite: Bool?,
+        search: String?,
+        enableAddDelete: Bool,
+        pagination: PaginationInfo? = nil
+    ) {
+        self.chaupais = chaupais.map { Chaupai.Public(from: $0) }
+        self.books = books
+        self.prakarans = prakarans
+        self.selectedBookID = selectedBookID
+        self.selectedPrakaranID = selectedPrakaranID
+        self.selectedFavourite = selectedFavourite
+        self.search = search
+        self.enableAddDelete = enableAddDelete
+        self.pagination = pagination
+    }
+}

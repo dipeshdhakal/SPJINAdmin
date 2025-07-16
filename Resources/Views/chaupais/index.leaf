@@ -8,7 +8,7 @@
         <h1 class="text-2xl font-semibold text-gray-900">Chaupais</h1>
         <p class="mt-2 text-sm text-gray-700">A list of all chaupais in the system.</p>
     </div>
-    <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none flex items-center gap-4">
+    <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
         #if(enableAddDelete):
         <a href="/admin/chaupais/new" class="inline-flex items-center justify-center rounded-md border border-transparent bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 sm:w-auto">
             Add Chaupai
@@ -109,9 +109,7 @@
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Book</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Meaning</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Favourite</th>
-                            <th scope="col" class="relative px-6 py-3">
-                                <span class="sr-only">Actions</span>
-                            </th>
+                            <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -156,17 +154,14 @@
                         #endfor
                     </tbody>
                 </table>
-                #if(count(chaupais) == 0):
-                <div class="text-center py-12">
-                    <p class="text-gray-500">No chaupais found.</p>
-                    #if(enableAddDelete):
-                    <a href="/admin/chaupais/new" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-purple-600 bg-purple-100 hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-                        Add your first chaupai
-                    </a>
-                    #endif
-                </div>
-                #endif
             </div>
+
+            <!-- Pagination -->
+            #if(pagination):
+            #import("components/pagination"):
+            #paginationControls(pagination, "/admin/chaupais")
+            #endif
+
         </div>
     </div>
 </div>
@@ -252,8 +247,6 @@
     function retryLoading() {
         submitForm();
     }
-
-
 </script>
 
 #endexport

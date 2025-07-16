@@ -127,6 +127,12 @@
             <p>Please sign in to continue</p>
         </div>
         
+        #if(error):
+        <div class="error-message">
+            #(error)
+        </div>
+        #endif
+        
         <form action="/auth/login" method="POST">
             #if(redirect):
             <input type="hidden" name="redirect" value="#(redirect)">
