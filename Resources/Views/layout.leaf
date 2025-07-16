@@ -20,6 +20,9 @@
                     <a href="/admin/books" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-800 #if(page == "books"):bg-blue-800#endif">Books</a>
                     <a href="/admin/prakarans" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-800 #if(page == "prakarans"):bg-blue-800#endif">Prakarans</a>
                     <a href="/admin/chaupais" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-800 #if(page == "chaupais"):bg-blue-800#endif">Chaupais</a>
+                    <form action="/auth/logout" method="POST" class="inline">
+                        <button type="submit" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-red-600 bg-red-500">Logout</button>
+                    </form>
                 </div>
             </div>
         </div>

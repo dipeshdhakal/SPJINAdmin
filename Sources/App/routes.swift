@@ -1,7 +1,10 @@
 import Vapor
 
 func routes(_ app: Application) throws {
-    // API Routes
+    // Authentication routes (public)
+    try app.register(collection: AuthController())
+    
+    // API Routes (public for now, can be protected later)
     let api = app.grouped("api", "v1")
     
     // Book routes
@@ -13,8 +16,8 @@ func routes(_ app: Application) throws {
     // Chaupai routes
     try api.register(collection: ChaupaiController())
     
-    // Admin routes
-    let admin = app.grouped("admin")
+    // Protected Admin routes
+    let admin = app.grouped("admin").grouped(AuthMiddleware())
     try admin.register(collection: AdminController())
     
     // Root redirect to admin
