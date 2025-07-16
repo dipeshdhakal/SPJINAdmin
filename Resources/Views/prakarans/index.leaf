@@ -1,0 +1,107 @@
+#extend("layout"):
+#export("title", "Prakarans")
+#export("page", "prakarans")
+#export("content"):
+
+<div class="sm:flex sm:items-center">
+    <div class="sm:flex-auto">
+        <h1 class="text-2xl font-semibold text-gray-900">Prakarans</h1>
+        <p class="mt-2 text-sm text-gray-700">A list of all prakarans in the system.</p>
+    </div>
+    <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+        <a href="/admin/prakarans/new" class="inline-flex items-center justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:w-auto">
+            Add Prakaran
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="mt-6">
+    <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+            <label for="bookID" class="block text-sm font-medium text-gray-700">Filter by Book</label>
+            <select name="bookID" id="bookID" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm">
+                <option value="">All Books</option>
+                #for(book in books):
+                <option value="#(book.bookID)" #if(selectedBookID == book.bookID):selected#endif>#(book.bookName)</option>
+                #endfor
+            </select>
+        </div>
+        <div>
+            <label for="search" class="block text-sm font-medium text-gray-700">Search</label>
+            <input type="text" name="search" id="search" value="#(search)" placeholder="Search prakarans..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm">
+        </div>
+        <div class="flex items-end">
+            <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 mr-2">
+                Filter
+            </button>
+            #if(selectedBookID || search):
+            <a href="/admin/prakarans" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                Clear
+            </a>
+            #endif
+        </div>
+    </form>
+</div>
+
+<!-- Prakarans Table -->
+<div class="mt-8 flex flex-col">
+    <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
+            <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+                <table class="min-w-full divide-y divide-gray-300">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Book</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chaupais</th>
+                            <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        #for(prakaran in prakarans):
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">#(prakaran.prakaranOrder)</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#(prakaran.prakaranName)</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#(prakaran.bookName)</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                #if(prakaran.prakaranDetails):
+                                    <div class="max-w-xs truncate">#(prakaran.prakaranDetails)</div>
+                                #else:
+                                    <span class="text-gray-400">No details</span>
+                                #endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                #if(prakaran.chaupaiCount):
+                                    <a href="/admin/chaupais?prakaranID=#(prakaran.prakaranID)" class="text-green-600 hover:text-green-900">#(prakaran.chaupaiCount) chaupais</a>
+                                #else:
+                                    0 chaupais
+                                #endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <a href="/admin/prakarans/#(prakaran.prakaranID)/edit" class="text-green-600 hover:text-green-900 mr-4">Edit</a>
+                                <form method="POST" action="/admin/prakarans/#(prakaran.prakaranID)/delete" class="inline" onsubmit="return confirm('Are you sure you want to delete this prakaran?')">
+                                    <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        #endfor
+                    </tbody>
+                </table>
+                #if(count(prakarans) == 0):
+                <div class="text-center py-12">
+                    <p class="text-gray-500">No prakarans found.</p>
+                    <a href="/admin/prakarans/new" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-green-600 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        Add your first prakaran
+                    </a>
+                </div>
+                #endif
+            </div>
+        </div>
+    </div>
+</div>
+
+#endexport
+#endextend

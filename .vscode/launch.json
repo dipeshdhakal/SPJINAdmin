@@ -1,0 +1,40 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:SPJIN}",
+            "name": "Debug SPJIN",
+            "program": "${workspaceFolder:SPJIN}/.build/debug/SPJIN",
+            "preLaunchTask": "swift: Build Debug SPJIN"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:SPJIN}",
+            "name": "Release SPJIN",
+            "program": "${workspaceFolder:SPJIN}/.build/release/SPJIN",
+            "preLaunchTask": "swift: Build Release SPJIN"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:SPJIN}",
+            "name": "Debug App",
+            "program": "${workspaceFolder:SPJIN}/.build/debug/App",
+            "preLaunchTask": "swift: Build Debug App"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:SPJIN}",
+            "name": "Release App",
+            "program": "${workspaceFolder:SPJIN}/.build/release/App",
+            "preLaunchTask": "swift: Build Release App"
+        }
+    ]
+}
