@@ -1,0 +1,261 @@
+#extend("layout"):
+#export("title", "Books")
+#export("page", "books")
+#export("content"):
+
+<div class="sm:flex sm:items-center">
+    <div class="sm:flex-auto">
+        <h1 class="text-2xl font-semibold text-gray-900">Books</h1>
+        <p class="mt-2 text-sm text-gray-700">A list of all books in the system.</p>
+    </div>
+    <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+        #if(enableAddDelete):
+        <a href="/admin/books/new" class="inline-flex items-center justify-center rounded-md border border-transparent bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 sm:w-auto">
+            Add Book
+        </a>
+        #endif
+    </div>
+</div>
+
+<!-- Search -->
+<div class="mt-8 bg-white p-6 shadow-sm rounded-lg border border-gray-200">
+    <form method="GET" id="filterForm">
+        <div>
+            <label for="search" class="block text-base font-medium text-gray-700 mb-2">Search</label>
+            <div class="relative">
+                <input type="text" name="search" id="search" value="#(search)" placeholder="Search books..." class="block w-full rounded-lg border-gray-300 py-3 pl-4 pr-10 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-base">
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+        #if(search):
+        <div class="mt-4 flex justify-end">
+            <a href="/admin/books" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                Clear Search
+            </a>
+        </div>
+        #endif
+    </form>
+</div>
+
+<!-- Loading State -->
+<div id="loading-state" class="hidden mt-8">
+    <div class="flex justify-center items-center py-12">
+        <svg class="animate-spin h-8 w-8 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span class="ml-3 text-lg font-medium text-gray-700">Loading books...</span>
+    </div>
+</div>
+
+<!-- Error State -->
+<div id="error-state" class="hidden mt-8">
+    <div class="bg-red-50 rounded-lg p-8 text-center">
+        <svg class="mx-auto h-12 w-12 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <h3 class="mt-4 text-lg font-medium text-red-800">Error loading books</h3>
+        <p class="mt-2 text-red-700">There was an error loading the data. Please try again.</p>
+        <button onclick="retryLoading()" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Retry
+        </button>
+    </div>
+</div>
+
+<!-- Books Table -->
+<div id="data-container" class="mt-8 flex flex-col">
+    <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
+            <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+                <table class="min-w-full divide-y divide-gray-300">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                            <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        #for(book in books):
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#(book.bookName)</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                #if(book.bookDescription):
+                                    <div class="max-w-xs truncate">#(book.bookDescription)</div>
+                                #else:
+                                    <span class="text-gray-400">No description</span>
+                                #endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex justify-end items-center space-x-4">
+                                    <a href="/admin/books/#(book.bookID)/edit" class="text-purple-600 hover:text-purple-900">Edit</a>
+                                    #if(enableAddDelete):
+                                    <form method="POST" action="/admin/books/#(book.bookID)/delete" class="inline" onsubmit="return confirm('Are you sure you want to delete this book?')">
+                                        <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
+                                    </form>
+                                    #endif
+                                </div>
+                            </td>
+                        </tr>
+                        #endfor
+                    </tbody>
+                </table>
+                #if(count(books) == 0):
+                <div class="text-center py-12">
+                    <p class="text-gray-500">No books found.</p>
+                    #if(enableAddDelete):
+                    <a href="/admin/books/new" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-purple-600 bg-purple-100 hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                        Add your first book
+                    </a>
+                    #endif
+                </div>
+                #endif
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+#if(metadata):
+<div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+    <div class="flex-1 flex justify-between sm:hidden">
+        #if(metadata.page > 1):
+        <a href="/admin/books?page=#(metadata.page - 1)#if(search):&search=#(search)#endif" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            Previous
+        </a>
+        #else:
+        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-300 bg-gray-50 cursor-not-allowed">
+            Previous
+        </span>
+        #endif
+        
+        #if(metadata.page < metadata.pageCount):
+        <a href="/admin/books?page=#(metadata.page + 1)#if(search):&search=#(search)#endif" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            Next
+        </a>
+        #else:
+        <span class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-300 bg-gray-50 cursor-not-allowed">
+            Next
+        </span>
+        #endif
+    </div>
+    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <div>
+            <p class="text-sm text-gray-700">
+                Showing <span class="font-medium">#((metadata.page - 1) * metadata.per + 1)</span> to <span class="font-medium">#if(metadata.page * metadata.per > metadata.total):#(metadata.total)#else:#(metadata.page * metadata.per)#endif</span> of <span class="font-medium">#(metadata.total)</span> results
+            </p>
+        </div>
+        <div>
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                #if(metadata.page > 1):
+                <a href="/admin/books?page=#(metadata.page - 1)#if(search):&search=#(search)#endif" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    Previous
+                </a>
+                #else:
+                <span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-sm font-medium text-gray-300 cursor-not-allowed">
+                    Previous
+                </span>
+                #endif
+                
+                #if(metadata.page < metadata.pageCount):
+                <a href="/admin/books?page=#(metadata.page + 1)#if(search):&search=#(search)#endif" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    Next
+                </a>
+                #else:
+                <span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-gray-50 text-sm font-medium text-gray-300 cursor-not-allowed">
+                    Next
+                </span>
+                #endif
+            </nav>
+        </div>
+    </div>
+</div>
+#endif
+
+<script>
+    let debounceTimer;
+    const form = document.getElementById('filterForm');
+    const loadingState = document.getElementById('loading-state');
+    const errorState = document.getElementById('error-state');
+    const dataContainer = document.getElementById('data-container');
+
+    form.querySelectorAll('input').forEach(element => {
+        element.addEventListener('input', handleFormChange);
+    });
+
+    function handleFormChange() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            submitForm();
+        }, 300);
+    }
+
+    function submitForm() {
+        showLoading();
+        
+        const formData = new FormData(form);
+        const queryString = new URLSearchParams(formData).toString();
+        
+        fetch(window.location.pathname + '?' + queryString)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newDataContainer = doc.getElementById('data-container');
+                
+                if (newDataContainer) {
+                    dataContainer.innerHTML = newDataContainer.innerHTML;
+                    hideLoading();
+                    hideError();
+                    window.history.pushState({}, '', window.location.pathname + '?' + queryString);
+                } else {
+                    throw new Error('Invalid response format');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError();
+            });
+    }
+
+    function showLoading() {
+        dataContainer.classList.add('opacity-50');
+        loadingState.classList.remove('hidden');
+        errorState.classList.add('hidden');
+    }
+
+    function hideLoading() {
+        dataContainer.classList.remove('opacity-50');
+        loadingState.classList.add('hidden');
+    }
+
+    function showError() {
+        dataContainer.classList.add('hidden');
+        loadingState.classList.add('hidden');
+        errorState.classList.remove('hidden');
+    }
+
+    function hideError() {
+        dataContainer.classList.remove('hidden');
+        errorState.classList.add('hidden');
+    }
+
+    function retryLoading() {
+        submitForm();
+    }
+</script>
+
+#endexport
+#endextend

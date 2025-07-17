@@ -1,0 +1,62 @@
+#extend("layout"):
+#export("title", "#if(prakaran):Edit Prakaran#else:New Prakaran#endif")
+#export("page", "prakarans")
+#export("content"):
+
+<div class="md:grid md:grid-cols-3 md:gap-6">
+    <div class="md:col-span-1">
+        <div class="px-4 sm:px-0">
+            <h3 class="text-lg font-medium leading-6 text-gray-900">
+                #if(prakaran):Edit Prakaran#else:New Prakaran#endif
+            </h3>
+            <p class="mt-1 text-sm text-gray-600">
+                #if(prakaran):Update the prakaran information below.#else:Create a new prakaran by filling out the form below.#endif
+            </p>
+        </div>
+    </div>
+    <div class="mt-5 md:col-span-2 md:mt-0">
+        <form method="POST" action="/admin/prakarans#if(prakaran):/#(prakaran.prakaranID)#endif">
+            <div class="overflow-hidden shadow sm:rounded-md">
+                <div class="bg-white px-4 py-5 sm:p-6">
+                    <div class="grid grid-cols-6 gap-6">
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="prakaranOrder" class="block text-sm font-medium text-gray-700">Prakaran Order</label>
+                            <input type="number" name="prakaranOrder" id="prakaranOrder" value="#if(prakaran):#(prakaran.prakaranOrder)#else:0#endif" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm">
+                        </div>
+
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="bookID" class="block text-sm font-medium text-gray-700">Book</label>
+                            <select name="bookID" id="bookID" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm">
+                                <option value="">Select a book</option>
+                                #for(book in books):
+                                <option value="#(book.bookID)" #if(prakaran && prakaran.bookID == book.bookID):selected#elseif(books.first && books.first.bookID == book.bookID):selected#endif>#(book.bookName)</option>
+                                #endfor
+                            </select>
+                        </div>
+
+                        <div class="col-span-6">
+                            <label for="prakaranName" class="block text-sm font-medium text-gray-700">Prakaran Name</label>
+                            <input type="text" name="prakaranName" id="prakaranName" value="#if(prakaran):#(prakaran.prakaranName)#else:#endif" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm">
+                        </div>
+
+                        <div class="col-span-6">
+                            <label for="prakaranDetails" class="block text-sm font-medium text-gray-700">Prakaran Details</label>
+                            <textarea name="prakaranDetails" id="prakaranDetails" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm" placeholder="Optional details about this prakaran...">#if(prakaran):#(prakaran.prakaranDetails)#else:#endif</textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 text-right sm:px-6">
+                    <a href="/admin/prakarans" class="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 mr-3">
+                        Cancel
+                    </a>
+                    <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-green-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                        #if(prakaran):Update#else:Create#endif
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+#endexport
+#endextend

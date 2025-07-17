@@ -60,7 +60,7 @@ struct WebChaupaiController: RouteCollection {
             }
         }
         
-        let page = try await query.paginate(for: req)
+        let page = try await query.paginate(PageRequest(page: req.query[Int.self, at: "page"] ?? 1, per: 20))
         let chaupais = page.items
         
         let context = ChaupaiListContext(

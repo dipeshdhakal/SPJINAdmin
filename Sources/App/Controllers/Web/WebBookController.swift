@@ -24,7 +24,7 @@ struct WebBookController: RouteCollection {
     func index(req: Request) async throws -> View {
         let page = try await Book.query(on: req.db)
             .with(\.$prakarans)
-            .paginate(for: req)
+            .paginate(PageRequest(page: req.query[Int.self, at: "page"] ?? 1, per: 20))
             
         let books = page.items
         

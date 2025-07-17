@@ -13,10 +13,10 @@
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
-                    <a href="/admin" class="text-xl font-bold">SPJIN Admin</a>
+                    <a href="/admin/dashboard" class="text-xl font-bold">SPJIN Admin</a>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="/admin" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-800 #if(page == "dashboard"):bg-blue-800#endif">Dashboard</a>
+                    <a href="/admin/dashboard" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-800 #if(page == "dashboard"):bg-blue-800#endif">Dashboard</a>
                     <a href="/admin/books" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-800 #if(page == "books"):bg-blue-800#endif">Books</a>
                     <a href="/admin/prakarans" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-800 #if(page == "prakarans"):bg-blue-800#endif">Prakarans</a>
                     <a href="/admin/chaupais" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-800 #if(page == "chaupais"):bg-blue-800#endif">Chaupais</a>
