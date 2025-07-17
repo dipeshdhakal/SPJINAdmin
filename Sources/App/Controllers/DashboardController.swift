@@ -11,26 +11,12 @@ struct DashboardController: RouteCollection {
         async let booksCount = Book.query(on: req.db).count()
         async let prakaransCount = Prakaran.query(on: req.db).count()
         async let chaupaisCount = Chaupai.query(on: req.db).count()
-        async let favouriteChaupaisCount = Chaupai.query(on: req.db)
-            .filter(\.$favourite == true)
-            .count()
-        
-        // Get recent chaupais
-        async let recentChaupais = Chaupai.query(on: req.db)
-            .with(\.$prakaran) { prakaran in
-                prakaran.with(\.$book)
-            }
-            .sort(\.$id, .descending)
-            .limit(5)
-            .all()
         
         // Wait for all async operations
-        let (books, prakarans, chaupais, favourites, recent) = try await (
+        let (books, prakarans, chaupais) = try await (
             booksCount,
             prakaransCount,
-            chaupaisCount,
-            favouriteChaupaisCount,
-            recentChaupais
+            chaupaisCount
         )
         
         struct DashboardContext: Encodable {
@@ -38,20 +24,16 @@ struct DashboardController: RouteCollection {
                 let books: Int
                 let prakarans: Int
                 let chaupais: Int
-                let favourites: Int
             }
             let stats: Stats
-            let recentChaupais: [Chaupai.Public]
         }
         
         let context = DashboardContext(
             stats: .init(
                 books: books,
                 prakarans: prakarans,
-                chaupais: chaupais,
-                favourites: favourites
-            ),
-            recentChaupais: recent.map { Chaupai.Public(from: $0) }
+                chaupais: chaupais
+            )
         )
         return try await req.view.render("admin/dashboard", context)
     }
