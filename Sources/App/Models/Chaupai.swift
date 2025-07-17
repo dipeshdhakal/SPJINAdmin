@@ -16,20 +16,16 @@ final class Chaupai: Model, Content {
     @OptionalField(key: "chaupaiMeaning")
     var chaupaiMeaning: String?
     
-    @Field(key: "favourite")
-    var favourite: Bool
-    
     @Parent(key: "prakaranID")
     var prakaran: Prakaran
     
     init() { }
     
-    init(id: Int? = nil, chaupaiNumber: Int, chaupaiName: String, chaupaiMeaning: String? = nil, favourite: Bool = false, prakaranID: Int) {
+    init(id: Int? = nil, chaupaiNumber: Int, chaupaiName: String, chaupaiMeaning: String? = nil, prakaranID: Int) {
         self.id = id
         self.chaupaiNumber = chaupaiNumber
         self.chaupaiName = chaupaiName
         self.chaupaiMeaning = chaupaiMeaning
-        self.favourite = favourite
         self.$prakaran.id = prakaranID
     }
 }
@@ -41,7 +37,6 @@ extension Chaupai {
         let chaupaiNumber: Int
         let chaupaiName: String
         let chaupaiMeaning: String?
-        let favourite: Bool
         let prakaranID: Int
         
         init(from chaupai: Chaupai) {
@@ -49,7 +44,6 @@ extension Chaupai {
             self.chaupaiNumber = chaupai.chaupaiNumber
             self.chaupaiName = chaupai.chaupaiName
             self.chaupaiMeaning = chaupai.chaupaiMeaning
-            self.favourite = chaupai.favourite
             self.prakaranID = chaupai.$prakaran.id
         }
     }
@@ -89,7 +83,6 @@ struct ChaupaisContext: Encodable {
     let prakarans: [Prakaran]
     let selectedBookID: Int?
     let selectedPrakaranID: Int?
-    let selectedFavourite: Bool?
     let search: String?
     let enableAddDelete: Bool
     let pagination: PaginationInfo?
@@ -100,7 +93,6 @@ struct ChaupaisContext: Encodable {
         prakarans: [Prakaran],
         selectedBookID: Int?,
         selectedPrakaranID: Int?,
-        selectedFavourite: Bool?,
         search: String?,
         enableAddDelete: Bool,
         pagination: PaginationInfo? = nil
@@ -110,7 +102,6 @@ struct ChaupaisContext: Encodable {
         self.prakarans = prakarans
         self.selectedBookID = selectedBookID
         self.selectedPrakaranID = selectedPrakaranID
-        self.selectedFavourite = selectedFavourite
         self.search = search
         self.enableAddDelete = enableAddDelete
         self.pagination = pagination

@@ -47,6 +47,7 @@ struct WebChaupaiController: RouteCollection {
         // Always fetch all prakarans for frontend filtering
         let allPrakarans = try await Prakaran.query(on: req.db)
             .with(\.$book)
+            .sort(\Prakaran.$book.$id)
             .sort(\Prakaran.$prakaranOrder)
             .all()
         
@@ -54,6 +55,11 @@ struct WebChaupaiController: RouteCollection {
             .with(\.$prakaran) { prakaran in
                 prakaran.with(\.$book)
             }
+            .join(Prakaran.self, on: \Chaupai.$prakaran.$id == \Prakaran.$id)
+            .join(Book.self, on: \Prakaran.$book.$id == \Book.$id)
+            .sort(Book.self, \.$id)
+            .sort(Prakaran.self, \.$prakaranOrder)
+            .sort(\.$chaupaiNumber)
         
         if let bookID = req.query[Int.self, at: "bookID"] {
             query = query.join(Prakaran.self, on: \Chaupai.$prakaran.$id == \Prakaran.$id)
@@ -117,7 +123,6 @@ struct WebChaupaiController: RouteCollection {
             chaupaiNumber: input.chaupaiNumber,
             chaupaiName: input.chaupaiName,
             chaupaiMeaning: input.chaupaiMeaning,
-            favourite: false,
             prakaranID: input.prakaranID
         )
         

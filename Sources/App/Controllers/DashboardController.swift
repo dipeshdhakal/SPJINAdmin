@@ -26,14 +26,24 @@ struct DashboardController: RouteCollection {
                 let chaupais: Int
             }
             let stats: Stats
+            let success: String?
+            let error: String?
         }
+        
+        // Get and clear session messages
+        let successMessage = req.session.data["success"]
+        let errorMessage = req.session.data["error"]
+        req.session.data["success"] = nil
+        req.session.data["error"] = nil
         
         let context = DashboardContext(
             stats: .init(
                 books: books,
                 prakarans: prakarans,
                 chaupais: chaupais
-            )
+            ),
+            success: successMessage,
+            error: errorMessage
         )
         return try await req.view.render("admin/dashboard", context)
     }

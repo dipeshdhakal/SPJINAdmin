@@ -135,10 +135,6 @@ struct APIPrakaranController: RouteCollection {
         var query = prakaran.$chaupais.query(on: req.db)
         
         // Apply filters
-        if let favourite = req.query[Bool.self, at: "favourite"] {
-            query = query.filter(\.$favourite == favourite)
-        }
-        
         if let search = req.query[String.self, at: "search"] {
             query = query.group(.or) { group in
                 group.filter(\.$chaupaiName ~~ search)

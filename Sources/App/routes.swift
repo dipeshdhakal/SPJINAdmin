@@ -22,6 +22,7 @@ func routes(_ app: Application) throws {
     try admin.grouped("books").register(collection: WebBookController())
     try admin.grouped("prakarans").register(collection: WebPrakaranController())
     try admin.grouped("chaupais").register(collection: WebChaupaiController())
+    try admin.register(collection: ExportController())
     
     // Root redirect to admin dashboard (also protected)
     app.grouped(AuthMiddleware()).get { req in

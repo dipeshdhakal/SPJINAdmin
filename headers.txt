@@ -1,0 +1,7 @@
+HTTP/1.1 303 See Other
+content-length: 0
+location: /admin/dashboard
+set-cookie: auth_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiZXhwIjoxNzUyODM3NTQ3LjgwMDE4OCwic3ViIjoiQTkyM0ZGRUQtMjc5QS00MjRFLTkxMTItMzIyQjM0QjBEM0RFIn0.P3uqQoibjR4v_VNYDdNhWUxvaH54q3NNQpFcUwGirUQ; Expires=Fri, 18 Jul 2025 11:19:07 GMT; Max-Age=86400; Path=/; HttpOnly; SameSite=Lax
+connection: keep-alive
+date: Thu, 17 Jul 2025 11:19:07 GMT
+

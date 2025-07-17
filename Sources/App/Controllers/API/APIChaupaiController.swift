@@ -29,10 +29,6 @@ struct APIChaupaiController: RouteCollection {
             query = query.filter(\.$prakaran.$id == prakaranID)
         }
         
-        if let favourite = req.query[Bool.self, at: "favourite"] {
-            query = query.filter(\.$favourite == favourite)
-        }
-        
         if let search = req.query[String.self, at: "search"]?.trimmingCharacters(in: .whitespaces), !search.isEmpty {
             query = query.group(.or) { group in
                 group.filter(\.$chaupaiName ~~ search)
