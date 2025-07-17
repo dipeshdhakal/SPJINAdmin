@@ -58,7 +58,6 @@ extension Chaupai {
         let chaupaiNumber: Int
         let chaupaiName: String
         let chaupaiMeaning: String?
-        let favourite: Bool?
         let prakaranID: Int
         
         static func validations(_ validations: inout Validations) {
@@ -72,7 +71,6 @@ extension Chaupai {
         let chaupaiNumber: Int?
         let chaupaiName: String?
         let chaupaiMeaning: String?
-        let favourite: Bool?
         let prakaranID: Int?
         
         static func validations(_ validations: inout Validations) {

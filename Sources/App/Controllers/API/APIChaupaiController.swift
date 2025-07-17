@@ -74,7 +74,6 @@ struct APIChaupaiController: RouteCollection {
             chaupaiNumber: create.chaupaiNumber,
             chaupaiName: create.chaupaiName,
             chaupaiMeaning: create.chaupaiMeaning,
-            favourite: create.favourite ?? false,
             prakaranID: create.prakaranID
         )
         
@@ -111,9 +110,6 @@ struct APIChaupaiController: RouteCollection {
         }
         if let chaupaiMeaning = update.chaupaiMeaning {
             chaupai.chaupaiMeaning = chaupaiMeaning
-        }
-        if let favourite = update.favourite {
-            chaupai.favourite = favourite
         }
         if let prakaranID = update.prakaranID {
             // Verify prakaran exists

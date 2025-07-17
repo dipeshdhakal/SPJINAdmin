@@ -19,7 +19,7 @@
 
 <!-- Filters -->
 <div class="mt-8 bg-white p-6 shadow-sm rounded-lg border border-gray-200">
-    <form method="GET" id="filterForm" class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <form method="GET" id="filterForm" class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
             <label for="bookID" class="block text-base font-medium text-gray-700 mb-2">Filter by Book</label>
             <select name="bookID" id="bookID" class="block w-full rounded-lg border-gray-300 py-3 px-4 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-base">
@@ -39,14 +39,6 @@
             </select>
         </div>
         <div>
-            <label for="favourite" class="block text-base font-medium text-gray-700 mb-2">Favourite</label>
-            <select name="favourite" id="favourite" class="block w-full rounded-lg border-gray-300 py-3 px-4 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-base">
-                <option value="">All</option>
-                <option value="true" #if(selectedFavourite == true):selected#endif>Favourites Only</option>
-                <option value="false" #if(selectedFavourite == false):selected#endif>Non-Favourites Only</option>
-            </select>
-        </div>
-        <div>
             <label for="search" class="block text-base font-medium text-gray-700 mb-2">Search</label>
             <div class="relative">
                 <input type="text" name="search" id="search" value="#(search)" placeholder="Search chaupais..." class="block w-full rounded-lg border-gray-300 py-3 pl-4 pr-10 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-base">
@@ -58,7 +50,7 @@
             </div>
         </div>
     </form>
-    #if(selectedBookID || selectedPrakaranID || selectedFavourite || search):
+    #if(selectedBookID || selectedPrakaranID || search):
     <div class="mt-4 flex justify-end">
         <a href="/admin/chaupais" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
             Clear Filters
@@ -106,7 +98,6 @@
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Number</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Meaning</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Favourite</th>
                             <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
                         </tr>
                     </thead>
@@ -122,18 +113,6 @@
                                     <div class="max-w-xs truncate">#(chaupai.chaupaiMeaning)</div>
                                 #else:
                                     <span class="text-gray-400">No meaning</span>
-                                #endif
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                #if(chaupai.favourite):
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        Favourite
-                                    </span>
-                                #else:
-                                    <span class="text-gray-400">—</span>
                                 #endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -157,7 +136,7 @@
             <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
                 <div class="flex-1 flex justify-between sm:hidden">
                     #if(metadata.page > 1):
-                    <a href="/admin/chaupais?page=#(metadata.page - 1)#if(selectedBookID):&bookID=#(selectedBookID)#endif#if(selectedPrakaranID):&prakaranID=#(selectedPrakaranID)#endif#if(selectedFavourite):&favourite=#(selectedFavourite)#endif#if(search):&search=#(search)#endif" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    <a href="/admin/chaupais?page=#(metadata.page - 1)#if(selectedBookID):&bookID=#(selectedBookID)#endif#if(selectedPrakaranID):&prakaranID=#(selectedPrakaranID)#endif#if(search):&search=#(search)#endif" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                         Previous
                     </a>
                     #else:
@@ -167,7 +146,7 @@
                     #endif
                     
                     #if(metadata.page < metadata.pageCount):
-                    <a href="/admin/chaupais?page=#(metadata.page + 1)#if(selectedBookID):&bookID=#(selectedBookID)#endif#if(selectedPrakaranID):&prakaranID=#(selectedPrakaranID)#endif#if(selectedFavourite):&favourite=#(selectedFavourite)#endif#if(search):&search=#(search)#endif" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    <a href="/admin/chaupais?page=#(metadata.page + 1)#if(selectedBookID):&bookID=#(selectedBookID)#endif#if(selectedPrakaranID):&prakaranID=#(selectedPrakaranID)#endif#if(search):&search=#(search)#endif" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                         Next
                     </a>
                     #else:
@@ -185,7 +164,7 @@
                     <div>
                         <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
                             #if(metadata.page > 1):
-                            <a href="/admin/chaupais?page=#(metadata.page - 1)#if(selectedBookID):&bookID=#(selectedBookID)#endif#if(selectedPrakaranID):&prakaranID=#(selectedPrakaranID)#endif#if(selectedFavourite):&favourite=#(selectedFavourite)#endif#if(search):&search=#(search)#endif" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <a href="/admin/chaupais?page=#(metadata.page - 1)#if(selectedBookID):&bookID=#(selectedBookID)#endif#if(selectedPrakaranID):&prakaranID=#(selectedPrakaranID)#endif#if(search):&search=#(search)#endif" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                                 Previous
                             </a>
                             #else:
@@ -195,7 +174,7 @@
                             #endif
                             
                             #if(metadata.page < metadata.pageCount):
-                            <a href="/admin/chaupais?page=#(metadata.page + 1)#if(selectedBookID):&bookID=#(selectedBookID)#endif#if(selectedPrakaranID):&prakaranID=#(selectedPrakaranID)#endif#if(selectedFavourite):&favourite=#(selectedFavourite)#endif#if(search):&search=#(search)#endif" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <a href="/admin/chaupais?page=#(metadata.page + 1)#if(selectedBookID):&bookID=#(selectedBookID)#endif#if(selectedPrakaranID):&prakaranID=#(selectedPrakaranID)#endif#if(search):&search=#(search)#endif" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                                 Next
                             </a>
                             #else:
@@ -260,6 +239,7 @@
 
     function updatePrakaranOptions() {
         const selectedBookID = bookSelect.value;
+        const currentPrakaranID = prakaranSelect.value; // Store current selection
         
         // Clear current options except "All Prakarans"
         prakaranSelect.innerHTML = '<option value="">All Prakarans</option>';
@@ -274,8 +254,8 @@
             option.value = prakaran.id;
             option.textContent = `${prakaran.name} (${prakaran.bookName})`;
             
-            // Preserve selection if it matches
-            if (prakaran.id == '#(selectedPrakaranID)') {
+            // Preserve selection if it matches current selection or server-side selection
+            if (prakaran.id == currentPrakaranID || (currentPrakaranID === '' && prakaran.id == '#(selectedPrakaranID)')) {
                 option.selected = true;
             }
             

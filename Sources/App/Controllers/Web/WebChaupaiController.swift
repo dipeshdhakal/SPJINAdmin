@@ -7,7 +7,6 @@ struct ChaupaiListContext: Encodable {
     let prakarans: [Prakaran.Public]
     let selectedBookID: Int?
     let selectedPrakaranID: Int?
-    let selectedFavourite: Bool?
     let search: String?
     let enableAddDelete: Bool
     let metadata: PageMetadata
@@ -31,12 +30,11 @@ struct WebChaupaiController: RouteCollection {
     func index(req: Request) async throws -> View {
         let books = try await Book.query(on: req.db).all()
         
-        // Filter prakarans based on selected book
-        var prakaranQuery = Prakaran.query(on: req.db).with(\.$book)
-        if let bookID = req.query[Int.self, at: "bookID"] {
-            prakaranQuery = prakaranQuery.filter(\.$book.$id == bookID)
-        }
-        let prakarans = try await prakaranQuery.all()
+        // Always fetch all prakarans for frontend filtering
+        let allPrakarans = try await Prakaran.query(on: req.db)
+            .with(\.$book)
+            .sort(\Prakaran.$prakaranOrder)
+            .all()
         
         var query = Chaupai.query(on: req.db)
             .with(\.$prakaran) { prakaran in
@@ -53,10 +51,6 @@ struct WebChaupaiController: RouteCollection {
             query = query.filter(\.$prakaran.$id == prakaranID)
         }
         
-        if let favourite = req.query[Bool.self, at: "favourite"] {
-            query = query.filter(\.$favourite == favourite)
-        }
-        
         if let search = req.query[String.self, at: "search"] {
             query = query.group(.or) { group in
                 group.filter(\.$chaupaiName ~~ search)
@@ -70,10 +64,9 @@ struct WebChaupaiController: RouteCollection {
         let context = ChaupaiListContext(
             chaupais: chaupais.map { Chaupai.Public(from: $0) },
             books: books.map { Book.Public(from: $0) },
-            prakarans: prakarans.map { Prakaran.Public(from: $0) },
+            prakarans: allPrakarans.map { Prakaran.Public(from: $0) },
             selectedBookID: req.query[Int.self, at: "bookID"],
             selectedPrakaranID: req.query[Int.self, at: "prakaranID"],
-            selectedFavourite: req.query[Bool.self, at: "favourite"],
             search: req.query[String.self, at: "search"],
             enableAddDelete: AdminConfig.enableAddDelete,
             metadata: page.metadata
@@ -110,7 +103,7 @@ struct WebChaupaiController: RouteCollection {
             chaupaiNumber: input.chaupaiNumber,
             chaupaiName: input.chaupaiName,
             chaupaiMeaning: input.chaupaiMeaning,
-            favourite: input.favourite ?? false,
+            favourite: false,
             prakaranID: input.prakaranID
         )
         
@@ -152,9 +145,6 @@ struct WebChaupaiController: RouteCollection {
         }
         if let chaupaiMeaning = input.chaupaiMeaning {
             chaupai.chaupaiMeaning = chaupaiMeaning
-        }
-        if let favourite = input.favourite {
-            chaupai.favourite = favourite
         }
         if let prakaranID = input.prakaranID {
             chaupai.$prakaran.id = prakaranID
