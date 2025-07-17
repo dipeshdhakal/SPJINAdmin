@@ -9,7 +9,21 @@ struct ChaupaiListContext: Encodable {
     let selectedPrakaranID: Int?
     let search: String?
     let enableAddDelete: Bool
-    let metadata: PageMetadata
+    let metadata: PaginationMetadata
+}
+
+struct PaginationMetadata: Encodable {
+    let page: Int
+    let per: Int
+    let total: Int
+    let totalPages: Int
+    
+    init(from pageMetadata: PageMetadata) {
+        self.page = pageMetadata.page
+        self.per = pageMetadata.per
+        self.total = pageMetadata.total
+        self.totalPages = (pageMetadata.total + pageMetadata.per - 1) / pageMetadata.per
+    }
 }
 
 struct ChaupaiFormContext: Encodable {
@@ -69,7 +83,7 @@ struct WebChaupaiController: RouteCollection {
             selectedPrakaranID: req.query[Int.self, at: "prakaranID"],
             search: req.query[String.self, at: "search"],
             enableAddDelete: AdminConfig.enableAddDelete,
-            metadata: page.metadata
+            metadata: PaginationMetadata(from: page.metadata)
         )
         
         return try await req.view.render("admin/chaupais/index", context)
