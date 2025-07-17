@@ -105,8 +105,6 @@
                         <tr>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Number</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prakaran</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Book</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Meaning</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Favourite</th>
                             <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
@@ -119,8 +117,6 @@
                             <td class="px-6 py-4 text-sm font-medium text-gray-900">
                                 <div class="max-w-xs truncate">#(chaupai.chaupaiName)</div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#(chaupai.prakaranName)</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#(chaupai.bookName)</td>
                             <td class="px-6 py-4 text-sm text-gray-500">
                                 #if(chaupai.chaupaiMeaning):
                                     <div class="max-w-xs truncate">#(chaupai.chaupaiMeaning)</div>
@@ -219,10 +215,25 @@
 
 <script>
     let debounceTimer;
+    let initialLoad = true;
     const form = document.getElementById('filterForm');
     const loadingState = document.getElementById('loading-state');
     const errorState = document.getElementById('error-state');
     const dataContainer = document.getElementById('data-container');
+    const bookSelect = document.getElementById('bookID');
+    const prakaranSelect = document.getElementById('prakaranID');
+
+    // Store all prakarans for filtering
+    const allPrakarans = [
+        #for(prakaran in prakarans):
+        {
+            id: #(prakaran.prakaranID),
+            name: "#(prakaran.prakaranName)",
+            bookName: "#(prakaran.bookName)",
+            bookID: #(prakaran.bookID)
+        },
+        #endfor
+    ];
 
     // Add event listeners to all form controls
     form.querySelectorAll('select, input').forEach(element => {
@@ -232,7 +243,54 @@
         }
     });
 
+    // Special handler for book selection to update prakarans
+    bookSelect.addEventListener('change', function() {
+        updatePrakaranOptions();
+        if (!initialLoad) {
+            // Clear prakaran selection when book changes
+            prakaranSelect.value = '';
+            handleFormChange();
+        }
+    });
+
+    // Allow events after page is fully loaded
+    setTimeout(() => {
+        initialLoad = false;
+    }, 100);
+
+    function updatePrakaranOptions() {
+        const selectedBookID = bookSelect.value;
+        
+        // Clear current options except "All Prakarans"
+        prakaranSelect.innerHTML = '<option value="">All Prakarans</option>';
+        
+        // Filter and add prakarans based on selected book
+        const filteredPrakarans = selectedBookID ? 
+            allPrakarans.filter(p => p.bookID == selectedBookID) : 
+            allPrakarans;
+        
+        filteredPrakarans.forEach(prakaran => {
+            const option = document.createElement('option');
+            option.value = prakaran.id;
+            option.textContent = `${prakaran.name} (${prakaran.bookName})`;
+            
+            // Preserve selection if it matches
+            if (prakaran.id == '#(selectedPrakaranID)') {
+                option.selected = true;
+            }
+            
+            prakaranSelect.appendChild(option);
+        });
+    }
+
+    // Initialize prakaran options on page load
+    updatePrakaranOptions();
+
     function handleFormChange() {
+        if (initialLoad) {
+            return;
+        }
+        
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
             submitForm();
@@ -263,6 +321,9 @@
                     hideError();
                     // Update URL without page reload
                     window.history.pushState({}, '', window.location.pathname + '?' + queryString);
+                    
+                    // Re-initialize prakaran options after content update
+                    updatePrakaranOptions();
                 } else {
                     throw new Error('Invalid response format');
                 }

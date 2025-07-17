@@ -41,6 +41,7 @@ extension Prakaran {
         let prakaranName: String
         let prakaranDetails: String?
         let bookID: Int
+        let bookName: String
         let chaupaiCount: Int?
         
         init(from prakaran: Prakaran, chaupaiCount: Int? = nil) {
@@ -49,6 +50,7 @@ extension Prakaran {
             self.prakaranName = prakaran.prakaranName
             self.prakaranDetails = prakaran.prakaranDetails
             self.bookID = prakaran.$book.id
+            self.bookName = prakaran.book.bookName
             self.chaupaiCount = chaupaiCount
         }
     }

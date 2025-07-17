@@ -23,7 +23,7 @@
         <div>
             <label for="bookID" class="block text-base font-medium text-gray-700 mb-2">Filter by Book</label>
             <select name="bookID" id="bookID" class="block w-full rounded-lg border-gray-300 py-3 px-4 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-base">
-                <option value="">All Books</option>
+                <option value="" #if(!selectedBookID):selected#endif>All Books</option>
                 #for(book in books):
                 <option value="#(book.bookID)" #if(selectedBookID == book.bookID):selected#endif>#(book.bookName)</option>
                 #endfor
@@ -86,8 +86,8 @@
                 <table class="min-w-full divide-y divide-gray-300">
                     <thead class="bg-gray-50">
                         <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Book</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                             <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
                         </tr>
@@ -95,11 +95,11 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         #for(prakaran in prakarans):
                         <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#(prakaran.prakaranOrder)</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#(prakaran.prakaranName)</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#(prakaran.bookName)</td>
                             <td class="px-6 py-4 text-sm text-gray-500">
-                                #if(prakaran.prakaranDescription):
-                                    <div class="max-w-xs truncate">#(prakaran.prakaranDescription)</div>
+                                #if(prakaran.prakaranDetails):
+                                    <div class="max-w-xs truncate">#(prakaran.prakaranDetails)</div>
                                 #else:
                                     <span class="text-gray-400">No description</span>
                                 #endif
@@ -183,19 +183,42 @@
 
 <script>
     let debounceTimer;
+    let initialLoad = true;
     const form = document.getElementById('filterForm');
     const loadingState = document.getElementById('loading-state');
     const errorState = document.getElementById('error-state');
     const dataContainer = document.getElementById('data-container');
 
+    console.log('🔍 Form found:', form);
+    console.log('🔍 Form elements found:', form ? form.querySelectorAll('select, input').length : 'N/A');
+
     form.querySelectorAll('select, input').forEach(element => {
+        console.log(`Adding event listener to: ${element.tagName} with name: ${element.name}`);
         element.addEventListener('change', handleFormChange);
         if (element.tagName === 'INPUT') {
             element.addEventListener('input', handleFormChange);
         }
     });
 
-    function handleFormChange() {
+    // Allow events after page is fully loaded
+    setTimeout(() => {
+        initialLoad = false;
+        console.log('📄 Initial load complete - events now active');
+    }, 100);
+
+    function handleFormChange(event) {
+        const selectElement = document.getElementById('bookID');
+        console.log(`🔄 Form change detected on: ${event.target.name} = "${event.target.value}" (initialLoad: ${initialLoad})`);
+        console.log(`📋 Select element current value: "${selectElement.value}"`);
+        console.log(`📋 Select element selected index: ${selectElement.selectedIndex}`);
+        console.log(`📋 Selected option text: "${selectElement.options[selectElement.selectedIndex]?.text}"`);
+        console.log(`📋 Selected option value: "${selectElement.options[selectElement.selectedIndex]?.value}"`);
+        
+        if (initialLoad) {
+            console.log('🚫 Ignoring event during initial load');
+            return;
+        }
+        
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
             submitForm();
@@ -206,9 +229,27 @@
         showLoading();
         
         const formData = new FormData(form);
-        const queryString = new URLSearchParams(formData).toString();
+        const queryParams = new URLSearchParams();
+        console.log('FormData entries:');
+        for (const [key, value] of formData.entries()) {
+            console.log(`${key}: "${value}"`);
+        }
         
-        fetch(window.location.pathname + '?' + queryString)
+        // Add values to query string
+        for (const [key, value] of formData.entries()) {
+            if (key === 'bookID') {
+                // For bookID, only add if not empty (empty means "All Books")
+                if (value !== '') {
+                    queryParams.append(key, value);
+                }
+            } else if (value && value.trim() !== '') {
+                queryParams.append(key, value);
+            }
+        }
+        
+        const queryString = queryParams.toString();
+        
+        fetch(window.location.pathname + (queryString ? '?' + queryString : ''))
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -224,7 +265,7 @@
                     dataContainer.innerHTML = newDataContainer.innerHTML;
                     hideLoading();
                     hideError();
-                    window.history.pushState({}, '', window.location.pathname + '?' + queryString);
+                    window.history.pushState({}, '', window.location.pathname + (queryString ? '?' + queryString : ''));
                 } else {
                     throw new Error('Invalid response format');
                 }

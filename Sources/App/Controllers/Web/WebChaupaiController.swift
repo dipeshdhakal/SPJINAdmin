@@ -3,7 +3,7 @@ import Fluent
 
 struct ChaupaiListContext: Encodable {
     let chaupais: [Chaupai.Public]
-    let books: [Book]
+    let books: [Book.Public]
     let prakarans: [Prakaran.Public]
     let selectedBookID: Int?
     let selectedPrakaranID: Int?
@@ -30,9 +30,13 @@ struct WebChaupaiController: RouteCollection {
     
     func index(req: Request) async throws -> View {
         let books = try await Book.query(on: req.db).all()
-        let prakarans = try await Prakaran.query(on: req.db)
-            .with(\.$book)
-            .all()
+        
+        // Filter prakarans based on selected book
+        var prakaranQuery = Prakaran.query(on: req.db).with(\.$book)
+        if let bookID = req.query[Int.self, at: "bookID"] {
+            prakaranQuery = prakaranQuery.filter(\.$book.$id == bookID)
+        }
+        let prakarans = try await prakaranQuery.all()
         
         var query = Chaupai.query(on: req.db)
             .with(\.$prakaran) { prakaran in
@@ -65,7 +69,7 @@ struct WebChaupaiController: RouteCollection {
         
         let context = ChaupaiListContext(
             chaupais: chaupais.map { Chaupai.Public(from: $0) },
-            books: books,
+            books: books.map { Book.Public(from: $0) },
             prakarans: prakarans.map { Prakaran.Public(from: $0) },
             selectedBookID: req.query[Int.self, at: "bookID"],
             selectedPrakaranID: req.query[Int.self, at: "prakaranID"],

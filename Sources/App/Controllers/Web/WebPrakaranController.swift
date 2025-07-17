@@ -3,7 +3,7 @@ import Fluent
 
 struct PrakaranListContext: Encodable {
     let prakarans: [Prakaran.Public]
-    let books: [Book]
+    let books: [Book.Public]
     let selectedBookID: Int?
     let search: String?
     let enableAddDelete: Bool
@@ -12,7 +12,7 @@ struct PrakaranListContext: Encodable {
 
 struct PrakaranFormContext: Encodable {
     let prakaran: Prakaran?
-    let books: [Book]
+    let books: [Book.Public]
 }
 
 struct WebPrakaranController: RouteCollection {
@@ -30,15 +30,18 @@ struct WebPrakaranController: RouteCollection {
         
         var query = Prakaran.query(on: req.db)
             .with(\.$book)
+            .sort(\.$book.$id)
+            .sort(\.$prakaranOrder)
         
         if let bookID = req.query[Int.self, at: "bookID"] {
+            print("Filtering by bookID: \(bookID)")
             query = query.filter(\.$book.$id == bookID)
         }
         
         if let search = req.query[String.self, at: "search"] {
+            print("Filtering by search: \(search)")
             query = query.group(.or) { group in
                 group.filter(\.$prakaranName ~~ search)
-                group.filter(\.$prakaranDetails ~~ search)
             }
         }
         
@@ -47,7 +50,7 @@ struct WebPrakaranController: RouteCollection {
         
         let context = PrakaranListContext(
             prakarans: prakarans.map { Prakaran.Public(from: $0) },
-            books: books,
+            books: books.map { Book.Public(from: $0) },
             selectedBookID: req.query[Int.self, at: "bookID"],
             search: req.query[String.self, at: "search"],
             enableAddDelete: AdminConfig.enableAddDelete,
@@ -59,7 +62,7 @@ struct WebPrakaranController: RouteCollection {
     
     func create(req: Request) async throws -> View {
         let books = try await Book.query(on: req.db).all()
-        let context = PrakaranFormContext(prakaran: nil, books: books)
+        let context = PrakaranFormContext(prakaran: nil, books: books.map { Book.Public(from: $0) })
         return try await req.view.render("admin/prakarans/form", context)
     }
     
@@ -92,7 +95,7 @@ struct WebPrakaranController: RouteCollection {
         }
         
         let books = try await Book.query(on: req.db).all()
-        let context = PrakaranFormContext(prakaran: prakaran, books: books)
+        let context = PrakaranFormContext(prakaran: prakaran, books: books.map { Book.Public(from: $0) })
         return try await req.view.render("admin/prakarans/form", context)
     }
     
