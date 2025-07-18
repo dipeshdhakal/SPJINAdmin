@@ -48,14 +48,13 @@ struct WebPrakaranController: RouteCollection {
             .sort(\.$prakaranOrder)
         
         if let bookID = req.query[Int.self, at: "bookID"] {
-            print("Filtering by bookID: \(bookID)")
             query = query.filter(\.$book.$id == bookID)
         }
         
         if let search = req.query[String.self, at: "search"] {
-            print("Filtering by search: \(search)")
             query = query.group(.or) { group in
                 group.filter(\.$prakaranName ~~ search)
+                group.filter(\.$prakaranDetails ~~ search)
             }
         }
         

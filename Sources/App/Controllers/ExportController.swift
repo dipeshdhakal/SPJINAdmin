@@ -307,8 +307,6 @@ struct ExportController: RouteCollection {
                     do {
                         try await executeInsertStatement(statement, db: db)
                     } catch {
-                        print("Error executing statement: \(statement)")
-                        print("Error details: \(error)")
                         throw error
                     }
                 }
@@ -333,17 +331,11 @@ struct ExportController: RouteCollection {
         // Parse the INSERT statement and convert to model operations
         
         if statement.contains("INSERT INTO \"books\"") {
-            print("Importing books...")
             try await importBooks(from: statement, db: db)
-            print("Books imported successfully")
         } else if statement.contains("INSERT INTO \"prakarans\"") {
-            print("Importing prakarans...")
             try await importPrakarans(from: statement, db: db)
-            print("Prakarans imported successfully")
         } else if statement.contains("INSERT INTO \"chaupais\"") {
-            print("Importing chaupais...")
             try await importChaupais(from: statement, db: db)
-            print("Chaupais imported successfully")
         }
     }
     
@@ -357,7 +349,6 @@ struct ExportController: RouteCollection {
         
         for tuple in valuesTuples {
             let values = parseValues(from: tuple)
-            print("Book values parsed: \(values)")
             if values.count >= 3 {
                 let book = Book(
                     id: Int(values[0]) ?? nil,
@@ -365,8 +356,6 @@ struct ExportController: RouteCollection {
                     bookName: values[2]
                 )
                 try await book.save(on: db)
-            } else {
-                print("Warning: Not enough values for book: \(values)")
             }
         }
     }
@@ -379,14 +368,12 @@ struct ExportController: RouteCollection {
         
         for tuple in valuesTuples {
             let values = parseValues(from: tuple)
-            print("Prakaran values parsed: \(values)")
             if values.count >= 4 { // At minimum need: prakaranID, prakaranOrder, prakaranName, bookID
                 // Column order: prakaranID, prakaranOrder, prakaranName, bookID, prakaranDetails (optional)
                 let bookID = Int(values[3]) ?? 1
                 let bookExists = try await Book.find(bookID, on: db) != nil
                 
                 if !bookExists {
-                    print("Warning: Book with ID \(bookID) not found for prakaran \(values[2])")
                     continue // Skip this prakaran if book doesn't exist
                 }
                 
@@ -406,8 +393,6 @@ struct ExportController: RouteCollection {
                     bookID: bookID
                 )
                 try await prakaran.save(on: db)
-            } else {
-                print("Warning: Not enough values for prakaran: \(values)")
             }
         }
     }
@@ -420,14 +405,12 @@ struct ExportController: RouteCollection {
         
         for tuple in valuesTuples {
             let values = parseValues(from: tuple)
-            print("Chaupai values parsed: \(values)")
             if values.count >= 5 {
                 // Ensure the referenced prakaran exists before creating chaupai
                 let prakaranID = Int(values[4]) ?? 1
                 let prakaranExists = try await Prakaran.find(prakaranID, on: db) != nil
                 
                 if !prakaranExists {
-                    print("Warning: Prakaran with ID \(prakaranID) not found for chaupai \(values[2])")
                     continue // Skip this chaupai if prakaran doesn't exist
                 }
                 
@@ -439,8 +422,6 @@ struct ExportController: RouteCollection {
                     prakaranID: prakaranID
                 )
                 try await chaupai.save(on: db)
-            } else {
-                print("Warning: Not enough values for chaupai: \(values)")
             }
         }
     }

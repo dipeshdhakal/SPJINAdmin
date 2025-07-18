@@ -4,11 +4,10 @@ import Vapor
 struct SeedAdminUser: AsyncMigration {
     func prepare(on database: Database) async throws {
         let logger = database.logger
-        logger.debug("Starting admin user seeding...")
         
         // Check if admin user already exists
         let existingAdmin = try await User.query(on: database)
-            .filter(\.$username == "admin")
+            .filter(\.$username == "spjin@adminuser.com")
             .first()
         
         guard existingAdmin == nil else {
@@ -17,12 +16,10 @@ struct SeedAdminUser: AsyncMigration {
         }
         
         // Create default admin user
-        logger.debug("Creating new admin user...")
-        let password = "admin123"
+        let password = "SPj!n@Pass124" // Use a secure password
         let adminPasswordHash = try Bcrypt.hash(password)
-        let adminUser = User(username: "admin", passwordHash: adminPasswordHash)
+        let adminUser = User(username: "spjin@adminuser.com", passwordHash: adminPasswordHash)
         try await adminUser.save(on: database)
-        logger.debug("Admin user created successfully")
     }
     
     func revert(on database: Database) async throws {

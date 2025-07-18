@@ -75,7 +75,6 @@ struct AuthController: RouteCollection {
     }
     
     func logout(req: Request) throws -> Response {
-        print("Logging out user")
         let response = req.redirect(to: "/auth/login")
         response.cookies["auth_token"] = HTTPCookies.Value(
             string: "",
@@ -87,7 +86,6 @@ struct AuthController: RouteCollection {
             isHTTPOnly: true,
             sameSite: .lax
         )
-        print("Auth token cookie cleared")
         return response
     }
 }

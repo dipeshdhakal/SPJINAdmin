@@ -149,12 +149,6 @@
             
             <button type="submit" class="login-button">Sign In</button>
         </form>
-        
-        <div class="default-credentials">
-            <h3>Default Login Credentials:</h3>
-            <p>Username: admin</p>
-            <p>Password: admin123</p>
-        </div>
     </div>
 </body>
 </html>

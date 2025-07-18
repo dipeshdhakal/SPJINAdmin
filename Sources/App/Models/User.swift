@@ -31,11 +31,7 @@ final class User: Model, Content {
     }
     
     func verify(password: String) throws -> Bool {
-        print("Verifying password for user: \(username)")
-        print("Stored hash: \(passwordHash)")
-        print("Verifying against provided password: \(password)")
         let result = try Bcrypt.verify(password, created: passwordHash)
-        print("Password verification result: \(result)")
         return result
     }
 }
