@@ -196,11 +196,16 @@ struct ExportController: RouteCollection {
             let prakaranValues = prakarans.enumerated().map { index, prakaran in
                 let id = prakaran.id?.description ?? "NULL"
                 let prakaranName = prakaran.prakaranName.replacingOccurrences(of: "\"", with: "\"\"")
-                let prakaranDetails = prakaran.prakaranDetails?.replacingOccurrences(of: "\"", with: "\"\"") ?? ""
+                let prakaranDetailsValue: String
+                if let details = prakaran.prakaranDetails {
+                    prakaranDetailsValue = "\"\(details.replacingOccurrences(of: "\"", with: "\"\""))\""
+                } else {
+                    prakaranDetailsValue = "NULL"
+                }
                 let bookId = prakaran.$book.id.description
                 
                 let isLast = index == prakarans.count - 1
-                return "(\(id),\(prakaran.prakaranOrder),\"\(prakaranName)\",\(bookId),\"\(prakaranDetails)\")\(isLast ? ";" : ",")"
+                return "(\(id),\(prakaran.prakaranOrder),\"\(prakaranName)\",\(bookId),\(prakaranDetailsValue))\(isLast ? ";" : ",")"
             }
             
             sqlContent += prakaranValues.joined(separator: "\n")
@@ -352,6 +357,7 @@ struct ExportController: RouteCollection {
         
         for tuple in valuesTuples {
             let values = parseValues(from: tuple)
+            print("Book values parsed: \(values)")
             if values.count >= 3 {
                 let book = Book(
                     id: Int(values[0]) ?? nil,
@@ -359,6 +365,8 @@ struct ExportController: RouteCollection {
                     bookName: values[2]
                 )
                 try await book.save(on: db)
+            } else {
+                print("Warning: Not enough values for book: \(values)")
             }
         }
     }
@@ -371,9 +379,10 @@ struct ExportController: RouteCollection {
         
         for tuple in valuesTuples {
             let values = parseValues(from: tuple)
-            if values.count >= 5 {
-                // Ensure the referenced book exists before creating prakaran
-                let bookID = Int(values[4]) ?? 1
+            print("Prakaran values parsed: \(values)")
+            if values.count >= 4 { // At minimum need: prakaranID, prakaranOrder, prakaranName, bookID
+                // Column order: prakaranID, prakaranOrder, prakaranName, bookID, prakaranDetails (optional)
+                let bookID = Int(values[3]) ?? 1
                 let bookExists = try await Book.find(bookID, on: db) != nil
                 
                 if !bookExists {
@@ -381,14 +390,24 @@ struct ExportController: RouteCollection {
                     continue // Skip this prakaran if book doesn't exist
                 }
                 
+                // Handle optional prakaranDetails
+                let prakaranDetails: String?
+                if values.count >= 5 && !values[4].isEmpty && values[4] != "NULL" {
+                    prakaranDetails = values[4]
+                } else {
+                    prakaranDetails = nil
+                }
+                
                 let prakaran = Prakaran(
                     id: Int(values[0]) ?? nil,
                     prakaranOrder: Int(values[1]) ?? 1,
                     prakaranName: values[2],
-                    prakaranDetails: values[3].isEmpty ? nil : values[3],
+                    prakaranDetails: prakaranDetails,
                     bookID: bookID
                 )
                 try await prakaran.save(on: db)
+            } else {
+                print("Warning: Not enough values for prakaran: \(values)")
             }
         }
     }
@@ -401,6 +420,7 @@ struct ExportController: RouteCollection {
         
         for tuple in valuesTuples {
             let values = parseValues(from: tuple)
+            print("Chaupai values parsed: \(values)")
             if values.count >= 5 {
                 // Ensure the referenced prakaran exists before creating chaupai
                 let prakaranID = Int(values[4]) ?? 1
@@ -419,6 +439,8 @@ struct ExportController: RouteCollection {
                     prakaranID: prakaranID
                 )
                 try await chaupai.save(on: db)
+            } else {
+                print("Warning: Not enough values for chaupai: \(values)")
             }
         }
     }
@@ -460,14 +482,26 @@ struct ExportController: RouteCollection {
         var values: [String] = []
         var currentValue = ""
         var inQuotes = false
+        var escapeNext = false
         
         for char in tuple {
-            if char == "\"" && !inQuotes {
-                inQuotes = true
+            if escapeNext {
+                currentValue.append(char)
+                escapeNext = false
             } else if char == "\"" && inQuotes {
+                // Check if this is an escaped quote
                 inQuotes = false
+            } else if char == "\"" && !inQuotes {
+                inQuotes = true
             } else if char == "," && !inQuotes {
-                values.append(currentValue.trimmingCharacters(in: .whitespacesAndNewlines))
+                // Trim and remove quotes if they exist
+                var value = currentValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                if value.hasPrefix("\"") && value.hasSuffix("\"") {
+                    value = String(value.dropFirst().dropLast())
+                    // Handle escaped quotes within the string
+                    value = value.replacingOccurrences(of: "\"\"", with: "\"")
+                }
+                values.append(value)
                 currentValue = ""
             } else {
                 currentValue.append(char)
@@ -476,7 +510,13 @@ struct ExportController: RouteCollection {
         
         // Add the last value
         if !currentValue.isEmpty {
-            values.append(currentValue.trimmingCharacters(in: .whitespacesAndNewlines))
+            var value = currentValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            if value.hasPrefix("\"") && value.hasSuffix("\"") {
+                value = String(value.dropFirst().dropLast())
+                // Handle escaped quotes within the string
+                value = value.replacingOccurrences(of: "\"\"", with: "\"")
+            }
+            values.append(value)
         }
         
         return values
