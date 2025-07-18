@@ -17,13 +17,13 @@ COPY Package.swift Package.resolved ./
 # Resolve dependencies
 RUN swift package resolve
 
-# Copy source code
+# Copy source code and resources
 COPY Sources ./Sources
-COPY Public ./Public
 COPY Resources ./Resources
+COPY Public ./Public
 
-# Build the project with verbose output for debugging
-RUN swift build --configuration release -v
+# Build the project
+RUN swift build --configuration release
 
 # Production stage
 FROM swift:5.9-jammy-slim

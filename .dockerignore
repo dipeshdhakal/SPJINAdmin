@@ -1,13 +1,11 @@
 .build/
 .git/
-.gitignore
 .DS_Store
 .vscode/
 *.sqlite
 db.sqlite
 node_modules/
 npm-debug.log
-README.md
 .dockerignore
-Dockerfile
 .env*
+Tests/
