@@ -2,17 +2,14 @@
 
 set -e
 
-echo "Installing Swift..."
-# Install Swift if not available
-if ! command -v swift &> /dev/null; then
-    echo "Swift not found, installing..."
-    # Render will provide Swift in their environment
-fi
+echo "Starting build process..."
 
+# Resolve dependencies
+echo "Resolving Swift package dependencies..."
+swift package resolve
+
+# Build the project
 echo "Building Swift project..."
-swift build --configuration release
+swift build --configuration release --verbose
 
-echo "Running migrations..."
-./.build/release/App migrate --yes
-
-echo "Build complete!"
+echo "Build completed successfully!"

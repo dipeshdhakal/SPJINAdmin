@@ -2,25 +2,36 @@
 FROM swift:5.9-jammy as build
 
 # Install system dependencies
-RUN apt-get update -y \
-    && apt-get install -y libssl-dev zlib1g-dev libpq-dev \
+RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
+    && apt-get -q update \
+    && apt-get -q dist-upgrade -y \
+    && apt-get install -y libssl-dev zlib1g-dev libpq-dev pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 # Set work directory
 WORKDIR /build
 
-# Copy entire project
-COPY . .
+# Copy package files first for better caching
+COPY Package.swift Package.resolved ./
 
-# Build the project
-RUN swift build --configuration release
+# Resolve dependencies
+RUN swift package resolve
+
+# Copy source code
+COPY Sources ./Sources
+COPY Public ./Public
+COPY Resources ./Resources
+
+# Build the project with verbose output for debugging
+RUN swift build --configuration release -v
 
 # Production stage
 FROM swift:5.9-jammy-slim
 
 # Install runtime dependencies
-RUN apt-get update -y \
-    && apt-get install -y libssl3 libpq5 \
+RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
+    && apt-get -q update \
+    && apt-get install -y libssl3 libpq5 ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a vapor user and group
