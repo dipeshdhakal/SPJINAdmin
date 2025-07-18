@@ -6,3 +6,10 @@ DerivedData/
 .swiftpm/configuration/registries.json
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
+*.sqlite
+db.sqlite
+.env
+.env.local
+.env.production
+node_modules/
+npm-debug.log

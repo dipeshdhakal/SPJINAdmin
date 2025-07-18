@@ -1,18 +1,26 @@
 import Vapor
 import Fluent
 import FluentSQLiteDriver
+import FluentPostgresDriver
 import Leaf
 import JWT
 
 public func configure(_ app: Application) throws {
-    // Configure SQLite database
-    app.databases.use(.sqlite(.file("db.sqlite")), as: .sqlite)
+    // Configure database based on environment
+    if let databaseURL = Environment.get("DATABASE_URL") {
+        // Production: Use PostgreSQL
+        try app.databases.use(.postgres(url: databaseURL), as: .psql)
+    } else {
+        // Development: Use SQLite
+        app.databases.use(.sqlite(.file("db.sqlite")), as: .sqlite)
+    }
     
     // Configure Leaf templating
     app.views.use(.leaf)
     
-    // Configure JWT
-    app.jwt.signers.use(.hs256(key: "secret-key"))
+    // Configure JWT with environment-based secret
+    let jwtSecret = Environment.get("JWT_SECRET") ?? "secret-key"
+    app.jwt.signers.use(.hs256(key: jwtSecret))
     
     // Configure file upload limits (allow up to 50MB for SQL imports)
     app.routes.defaultMaxBodySize = "50mb"

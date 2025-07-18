@@ -9,6 +9,12 @@ defer { app.shutdown() }
 
 do {
     try configure(app)
+    
+    // Run migrations on startup in production
+    if env.isRelease {
+        try app.autoMigrate().wait()
+    }
+    
     try app.run()
 } catch {
     app.logger.report(error: error)
