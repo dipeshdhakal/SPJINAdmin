@@ -62,9 +62,7 @@ struct WebChaupaiController: RouteCollection {
             .sort(\.$chaupaiNumber)
         
         if let bookID = req.query[Int.self, at: "bookID"] {
-            query = query.join(Prakaran.self, on: \Chaupai.$prakaran.$id == \Prakaran.$id)
-                .join(Book.self, on: \Prakaran.$book.$id == \Book.$id)
-                .filter(Book.self, \.$id == bookID)
+            query = query.filter(Book.self, \.$id == bookID)
         }
         
         if let prakaranID = req.query[Int.self, at: "prakaranID"] {
