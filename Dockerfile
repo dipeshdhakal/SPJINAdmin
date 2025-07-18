@@ -23,7 +23,7 @@ COPY Resources ./Resources
 COPY Public ./Public
 
 # Build the project
-RUN swift build --configuration release
+RUN swift build --configuration release --skip-update
 
 # Production stage
 FROM swift:5.9-jammy-slim

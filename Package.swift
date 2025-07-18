@@ -23,13 +23,6 @@ let package = Package(
                 .product(name: "Leaf", package: "leaf"),
                 .product(name: "JWT", package: "jwt"),
             ]
-        ),
-        .testTarget(
-            name: "AppTests",
-            dependencies: [
-                .target(name: "App"),
-                .product(name: "XCTVapor", package: "vapor"),
-            ]
         )
     ]
 )

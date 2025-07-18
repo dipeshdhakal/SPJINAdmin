@@ -15,7 +15,7 @@
 - Branch: `main` (or your default branch)
 
 **Build & Deploy:**
-- Build Command: `swift build --configuration release`
+- Build Command: `swift build --configuration release --skip-update`
 - Start Command: `./.build/release/App serve --env production --hostname 0.0.0.0 --port $PORT`
 
 **Advanced Settings:**
