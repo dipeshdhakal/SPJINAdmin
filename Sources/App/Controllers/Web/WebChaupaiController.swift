@@ -72,7 +72,6 @@ struct WebChaupaiController: RouteCollection {
         if let search = req.query[String.self, at: "search"] {
             query = query.group(.or) { group in
                 group.filter(\.$chaupaiName ~~ search)
-                group.filter(\.$chaupaiMeaning ~~ search)
             }
         }
         

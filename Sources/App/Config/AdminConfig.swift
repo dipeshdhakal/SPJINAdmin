@@ -4,6 +4,10 @@ struct AdminConfig {
     // Controls whether add/delete functionality is enabled in the admin interface
     // Change this value and redeploy to enable/disable add/delete buttons
     static let enableAddDelete: Bool = false
+    
+    // Controls whether API write operations (create, update, delete) are allowed
+    // Change this value and redeploy to enable/disable API write operations
+    static let allowAPIWrite: Bool = false
 }
 
 struct IndexContext<T: Encodable>: Encodable {

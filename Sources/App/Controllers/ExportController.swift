@@ -3,130 +3,12 @@ import Fluent
 
 struct ExportController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
-        let exportRoutes = routes.grouped("export")
-        exportRoutes.get("books", "sql", use: exportBooksSQL)
-        exportRoutes.get("prakarans", "sql", use: exportPrakaransSQL)
-        exportRoutes.get("chaupais", "sql", use: exportChaupaisSQL)
-        exportRoutes.get("all", "sql", use: exportAllDataSQL)
-        
+        let importRoutes = routes.grouped("import")
+        importRoutes.get("all", "sql", use: exportAllDataSQL)
+
         // Import routes
-        exportRoutes.get("import", use: showImportForm)
-        exportRoutes.post("import", use: handleImport)
-    }
-    
-    func exportBooksSQL(req: Request) async throws -> Response {
-        let books = try await Book.query(on: req.db).all()
-        
-        var sqlContent = "-- Books Export\n"
-        sqlContent += "-- Generated on \(Date())\n\n"
-        sqlContent += "CREATE TABLE IF NOT EXISTS books (\n"
-        sqlContent += "\tbookID INTEGER PRIMARY KEY,\n"
-        sqlContent += "\tbookOrder INTEGER,\n"
-        sqlContent += "\tbookName TEXT NOT NULL\n"
-        sqlContent += ");\n\n"
-        
-        if !books.isEmpty {
-            sqlContent += "INSERT INTO \"books\" (\"bookID\",\"bookOrder\",\"bookName\") VALUES\n"
-            
-            let values = books.enumerated().map { index, book in
-                let id = book.id?.description ?? "NULL"
-                let bookName = book.bookName.replacingOccurrences(of: "\"", with: "\"\"")
-                
-                let isLast = index == books.count - 1
-                return "(\(id),\(book.bookOrder),\"\(bookName)\")\(isLast ? ";" : ",")"
-            }
-            
-            sqlContent += values.joined(separator: "\n")
-            sqlContent += "\n\n"
-        }
-        
-        let response = Response()
-        response.headers.contentType = .init(type: "application", subType: "sql")
-        response.headers.add(name: .contentDisposition, value: "attachment; filename=\"books.sql\"")
-        response.body = .init(string: sqlContent)
-        
-        return response
-    }
-    
-    func exportPrakaransSQL(req: Request) async throws -> Response {
-        let prakarans = try await Prakaran.query(on: req.db)
-            .with(\.$book)
-            .all()
-        
-        var sqlContent = "-- Prakarans Export\n"
-        sqlContent += "-- Generated on \(Date())\n\n"
-        sqlContent += "CREATE TABLE IF NOT EXISTS prakarans (\n"
-        sqlContent += "\tprakaranID INTEGER PRIMARY KEY,\n"
-        sqlContent += "\tprakaranOrder INTEGER,\n"
-        sqlContent += "\tprakaranName TEXT NOT NULL,\n"
-        sqlContent += "\tbookID INTEGER NOT NULL, prakaranDetails TEXT,\n"
-        sqlContent += "\tFOREIGN KEY(bookID) REFERENCES books(bookID) ON DELETE CASCADE\n"
-        sqlContent += ");\n\n"
-        
-        if !prakarans.isEmpty {
-            sqlContent += "INSERT INTO \"prakarans\" (\"prakaranID\",\"prakaranOrder\",\"prakaranName\",\"bookID\",\"prakaranDetails\") VALUES\n"
-            
-            let values = prakarans.enumerated().map { index, prakaran in
-                let id = prakaran.id?.description ?? "NULL"
-                let prakaranName = prakaran.prakaranName.replacingOccurrences(of: "\"", with: "\"\"")
-                let prakaranDetails = prakaran.prakaranDetails?.replacingOccurrences(of: "\"", with: "\"\"") ?? ""
-                let bookId = prakaran.$book.id.description
-                
-                let isLast = index == prakarans.count - 1
-                return "(\(id),\(prakaran.prakaranOrder),\"\(prakaranName)\",\(bookId),\"\(prakaranDetails)\")\(isLast ? ";" : ",")"
-            }
-            
-            sqlContent += values.joined(separator: "\n")
-            sqlContent += "\n\n"
-        }
-        
-        let response = Response()
-        response.headers.contentType = .init(type: "application", subType: "sql")
-        response.headers.add(name: .contentDisposition, value: "attachment; filename=\"prakarans.sql\"")
-        response.body = .init(string: sqlContent)
-        
-        return response
-    }
-    
-    func exportChaupaisSQL(req: Request) async throws -> Response {
-        let chaupais = try await Chaupai.query(on: req.db)
-            .with(\.$prakaran)
-            .all()
-        
-        var sqlContent = "-- Chaupais Export\n"
-        sqlContent += "-- Generated on \(Date())\n\n"
-        sqlContent += "CREATE TABLE IF NOT EXISTS chaupais (\n"
-        sqlContent += "\tchaupaiID INTEGER PRIMARY KEY,\n"
-        sqlContent += "\tchaupaiNumber INTEGER,\n"
-        sqlContent += "\tchaupaiName TEXT NOT NULL,\n"
-        sqlContent += "\tchaupaiMeaning TEXT,\n"
-        sqlContent += "\tprakaranID INTEGER NOT NULL,\n"
-        sqlContent += "\tFOREIGN KEY(prakaranID) REFERENCES prakarans(prakaranID) ON DELETE CASCADE\n"
-        sqlContent += ");\n\n"
-        
-        if !chaupais.isEmpty {
-            sqlContent += "INSERT INTO \"chaupais\" (\"chaupaiID\",\"chaupaiNumber\",\"chaupaiName\",\"chaupaiMeaning\",\"prakaranID\") VALUES\n"
-            
-            let values = chaupais.enumerated().map { index, chaupai in
-                let id = chaupai.id?.description ?? "NULL"
-                let chaupaiName = chaupai.chaupaiName.replacingOccurrences(of: "\"", with: "\"\"")
-                let chaupaiMeaning = chaupai.chaupaiMeaning?.replacingOccurrences(of: "\"", with: "\"\"") ?? ""
-                let prakaranId = chaupai.$prakaran.id.description
-                
-                let isLast = index == chaupais.count - 1
-                return "(\(id),\(chaupai.chaupaiNumber),\"\(chaupaiName)\",\"\(chaupaiMeaning)\",\(prakaranId))\(isLast ? ";" : ",")"
-            }
-            
-            sqlContent += values.joined(separator: "\n")
-            sqlContent += "\n\n"
-        }
-        
-        let response = Response()
-        response.headers.contentType = .init(type: "application", subType: "sql")
-        response.headers.add(name: .contentDisposition, value: "attachment; filename=\"chaupais.sql\"")
-        response.body = .init(string: sqlContent)
-        
-        return response
+        importRoutes.get("sql", use: showImportForm)
+        importRoutes.post("sql", use: handleImport)
     }
     
     func exportAllDataSQL(req: Request) async throws -> Response {
@@ -235,7 +117,7 @@ struct ExportController: RouteCollection {
         
         let response = Response()
         response.headers.contentType = .init(type: "application", subType: "sql")
-        response.headers.add(name: .contentDisposition, value: "attachment; filename=\"complete_database.sql\"")
+        response.headers.add(name: .contentDisposition, value: "attachment; filename=\"spjin_export_\(Int(Date().timeIntervalSince1970)).sql\"")
         response.body = .init(string: sqlContent)
         
         return response

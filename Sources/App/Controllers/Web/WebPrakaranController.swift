@@ -54,7 +54,6 @@ struct WebPrakaranController: RouteCollection {
         if let search = req.query[String.self, at: "search"] {
             query = query.group(.or) { group in
                 group.filter(\.$prakaranName ~~ search)
-                group.filter(\.$prakaranDetails ~~ search)
             }
         }
         

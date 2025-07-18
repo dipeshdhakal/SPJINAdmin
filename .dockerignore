@@ -2,8 +2,6 @@
 .git/
 .DS_Store
 .vscode/
-*.sqlite
-db.sqlite
 node_modules/
 npm-debug.log
 .dockerignore

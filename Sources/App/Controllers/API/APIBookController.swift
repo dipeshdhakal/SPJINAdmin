@@ -39,6 +39,10 @@ struct APIBookController: RouteCollection {
     }
     
     func create(req: Request) async throws -> Book.Public {
+        guard AdminConfig.allowAPIWrite else {
+            throw Abort(.forbidden, reason: "API write operations are disabled")
+        }
+        
         try Book.Create.validate(content: req)
         let create = try req.content.decode(Book.Create.self)
         
@@ -57,6 +61,10 @@ struct APIBookController: RouteCollection {
     }
     
     func update(req: Request) async throws -> Book.Public {
+        guard AdminConfig.allowAPIWrite else {
+            throw Abort(.forbidden, reason: "API write operations are disabled")
+        }
+        
         try Book.Update.validate(content: req)
         let update = try req.content.decode(Book.Update.self)
         
@@ -77,6 +85,10 @@ struct APIBookController: RouteCollection {
     }
     
     func delete(req: Request) async throws -> HTTPStatus {
+        guard AdminConfig.allowAPIWrite else {
+            throw Abort(.forbidden, reason: "API write operations are disabled")
+        }
+        
         guard let bookID = req.parameters.get("bookID", as: Int.self),
               let book = try await Book.find(bookID, on: req.db) else {
             throw Abort(.notFound)

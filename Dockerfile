@@ -5,7 +5,7 @@ FROM swift:5.9-jammy as build
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
     && apt-get -q update \
     && apt-get -q dist-upgrade -y \
-    && apt-get install -y libssl-dev zlib1g-dev libpq-dev pkg-config \
+    && apt-get install -y libssl-dev zlib1g-dev libsqlite3-dev pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 # Set work directory
@@ -31,7 +31,7 @@ FROM swift:5.9-jammy-slim
 # Install runtime dependencies
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
     && apt-get -q update \
-    && apt-get install -y libssl3 libpq5 ca-certificates \
+    && apt-get install -y libssl3 libsqlite3-0 ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a vapor user and group
@@ -45,8 +45,14 @@ COPY --from=build --chown=vapor:vapor /build/.build/release /app
 COPY --from=build --chown=vapor:vapor /build/Public /app/Public
 COPY --from=build --chown=vapor:vapor /build/Resources /app/Resources
 
+# Create directory for SQLite database with proper permissions
+RUN mkdir -p /app/data && chown vapor:vapor /app/data
+
 # Switch to vapor user
 USER vapor:vapor
+
+# Create volume for SQLite database persistence
+VOLUME ["/app/data"]
 
 # Expose port
 EXPOSE 8080

@@ -50,6 +50,10 @@ struct APIPrakaranController: RouteCollection {
     }
     
     func create(req: Request) async throws -> Prakaran.Public {
+        guard AdminConfig.allowAPIWrite else {
+            throw Abort(.forbidden, reason: "API write operations are disabled")
+        }
+        
         try Prakaran.Create.validate(content: req)
         let create = try req.content.decode(Prakaran.Create.self)
         
@@ -84,6 +88,10 @@ struct APIPrakaranController: RouteCollection {
     }
     
     func update(req: Request) async throws -> Prakaran.Public {
+        guard AdminConfig.allowAPIWrite else {
+            throw Abort(.forbidden, reason: "API write operations are disabled")
+        }
+        
         try Prakaran.Update.validate(content: req)
         let update = try req.content.decode(Prakaran.Update.self)
         
@@ -117,6 +125,10 @@ struct APIPrakaranController: RouteCollection {
     }
     
     func delete(req: Request) async throws -> HTTPStatus {
+        guard AdminConfig.allowAPIWrite else {
+            throw Abort(.forbidden, reason: "API write operations are disabled")
+        }
+        
         guard let prakaranID = req.parameters.get("prakaranID", as: Int.self),
               let prakaran = try await Prakaran.find(prakaranID, on: req.db) else {
             throw Abort(.notFound)

@@ -53,6 +53,10 @@ struct APIChaupaiController: RouteCollection {
     }
     
     func create(req: Request) async throws -> Chaupai.Public {
+        guard AdminConfig.allowAPIWrite else {
+            throw Abort(.forbidden, reason: "API write operations are disabled")
+        }
+        
         try Chaupai.Create.validate(content: req)
         let create = try req.content.decode(Chaupai.Create.self)
         
@@ -87,6 +91,10 @@ struct APIChaupaiController: RouteCollection {
     }
     
     func update(req: Request) async throws -> Chaupai.Public {
+        guard AdminConfig.allowAPIWrite else {
+            throw Abort(.forbidden, reason: "API write operations are disabled")
+        }
+        
         try Chaupai.Update.validate(content: req)
         let update = try req.content.decode(Chaupai.Update.self)
         
@@ -120,6 +128,10 @@ struct APIChaupaiController: RouteCollection {
     }
     
     func delete(req: Request) async throws -> HTTPStatus {
+        guard AdminConfig.allowAPIWrite else {
+            throw Abort(.forbidden, reason: "API write operations are disabled")
+        }
+        
         guard let chaupaiID = req.parameters.get("chaupaiID", as: Int.self),
               let chaupai = try await Chaupai.find(chaupaiID, on: req.db) else {
             throw Abort(.notFound)

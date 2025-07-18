@@ -1,19 +1,13 @@
 import Vapor
 import Fluent
 import FluentSQLiteDriver
-import FluentPostgresDriver
 import Leaf
 import JWT
 
 public func configure(_ app: Application) throws {
-    // Configure database based on environment
-    if let databaseURL = Environment.get("DATABASE_URL") {
-        // Production: Use PostgreSQL
-        try app.databases.use(.postgres(url: databaseURL), as: .psql)
-    } else {
-        // Development: Use SQLite
-        app.databases.use(.sqlite(.file("db.sqlite")), as: .sqlite)
-    }
+    // Configure SQLite database
+    let databasePath = app.environment == .production ? "/app/data/db.sqlite" : "db.sqlite"
+    app.databases.use(.sqlite(.file(databasePath)), as: .sqlite)
     
     // Configure Leaf templating
     app.views.use(.leaf)
