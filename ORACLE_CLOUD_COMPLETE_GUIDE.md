@@ -242,8 +242,9 @@ ssh -i ~/.ssh/oracle_cloud_key ubuntu@YOUR_PUBLIC_IP
 ### Step 9: Deploy Your Application
 
 ```bash
-# Navigate to the application directory
+# Navigate to the application directory and clean it
 cd /opt/spjin
+sudo rm -rf * .*  2>/dev/null || true
 
 # Clone your repository
 git clone https://github.com/dipeshdhakal/SPJINAdmin.git .
@@ -362,7 +363,17 @@ ls -la /opt/spjin/backups/
 
 ### Common Issues and Solutions
 
-**1. Can't connect via SSH**
+**1. Git clone fails: "destination path '.' already exists and is not an empty directory"**
+```bash
+# Clean the directory first
+cd /opt/spjin
+sudo rm -rf * .*  2>/dev/null || true
+
+# Then clone
+git clone https://github.com/dipeshdhakal/SPJINAdmin.git .
+```
+
+**2. Can't connect via SSH**
 ```bash
 # Check if you're using the correct key and IP
 ssh -i ~/.ssh/oracle_cloud_key ubuntu@YOUR_IP -v
@@ -370,7 +381,7 @@ ssh -i ~/.ssh/oracle_cloud_key ubuntu@YOUR_IP -v
 # Make sure security groups allow SSH (port 22)
 ```
 
-**2. Application won't start**
+**3. Application won't start**
 ```bash
 # Check logs
 docker-compose logs spjin-app
@@ -380,7 +391,7 @@ sudo systemctl restart docker
 docker-compose restart
 ```
 
-**3. Can't access website**
+**4. Can't access website**
 ```bash
 # Check if ports 80/443 are open in security lists
 # Check if application is running

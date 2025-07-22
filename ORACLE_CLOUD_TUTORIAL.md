@@ -118,7 +118,7 @@ cat ~/.ssh/oracle_cloud_key.pub
 ### Step 5.1: Connect to Server
 ```bash
 # Connect via SSH (replace YOUR_IP with actual IP)
-ssh -i ~/.ssh/oracle_cloud_key ubuntu@YOUR_PUBLIC_IP
+ssh -i ~/.ssh/oracle_cloud_key ubuntu@YOUR_PUBLIC_IP // 159.13.54.199
 
 # You should now be connected to your Ubuntu server
 ```
@@ -139,14 +139,18 @@ ssh -i ~/.ssh/oracle_cloud_key ubuntu@YOUR_PUBLIC_IP
 
 ### Step 5.3: Deploy Application
 ```bash
-# Go to app directory
+# Go to app directory and clean it
 cd /opt/spjin
+sudo rm -rf * .*  2>/dev/null || true
 
 # Clone your code
 git clone https://github.com/dipeshdhakal/SPJINAdmin.git .
 
 # Make scripts executable
-chmod +x deploy/deploy.sh deploy/oc-commands.sh
+chmod +x deploy/deploy.sh deploy/oc-commands.sh verify-deployment-files.sh
+
+# Verify all files are present (optional but recommended)
+./verify-deployment-files.sh
 
 # Deploy (replace with your domain or IP)
 ./deploy/deploy.sh YOUR_DOMAIN_OR_IP
@@ -215,6 +219,26 @@ cd /opt/spjin && ./deploy/oc-commands.sh status
 ---
 
 ## 🆘 Troubleshooting Quick Fixes
+
+### Missing deployment files error?
+```bash
+# Verify all files are present
+./verify-deployment-files.sh
+
+# If files are missing, re-clone properly
+cd /opt/spjin
+sudo rm -rf * .*  2>/dev/null || true
+git clone https://github.com/dipeshdhakal/SPJINAdmin.git .
+chmod +x deploy/*.sh verify-deployment-files.sh
+```
+
+### Git clone fails: "destination path already exists"?
+```bash
+# Clean the directory first
+cd /opt/spjin
+sudo rm -rf * .*  2>/dev/null || true
+git clone https://github.com/dipeshdhakal/SPJINAdmin.git .
+```
 
 ### Can't connect via SSH?
 ```bash

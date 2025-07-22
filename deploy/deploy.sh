@@ -43,9 +43,26 @@ fi
 echo "📁 Setting up Nginx configuration..."
 mkdir -p nginx/sites-available nginx/ssl logs
 
+# Copy nginx configuration from deploy directory
+echo "📄 Copying Nginx configuration..."
+if [ -f "deploy/nginx/nginx.conf" ]; then
+    cp deploy/nginx/nginx.conf nginx/nginx.conf
+    echo "✅ Nginx configuration copied"
+else
+    echo "❌ deploy/nginx/nginx.conf not found!"
+    echo "   Make sure you cloned the repository correctly"
+    exit 1
+fi
+
 # Update nginx config with domain
 echo "🔧 Configuring domain: $DOMAIN"
-sed -i "s/your-domain.com/$DOMAIN/g" nginx/nginx.conf
+if [ -f "nginx/nginx.conf" ]; then
+    sed -i "s/your-domain.com/$DOMAIN/g" nginx/nginx.conf
+    echo "✅ Domain configured: $DOMAIN"
+else
+    echo "❌ nginx/nginx.conf not found after copy!"
+    exit 1
+fi
 
 # Create systemd service for easier management
 echo "⚙️  Creating systemd service..."
@@ -66,6 +83,17 @@ TimeoutStartSec=0
 [Install]
 WantedBy=multi-user.target
 EOF
+
+# Copy docker-compose configuration
+echo "📄 Copying Docker Compose configuration..."
+if [ -f "deploy/docker-compose.yml" ]; then
+    cp deploy/docker-compose.yml docker-compose.yml
+    echo "✅ Docker Compose configuration copied"
+else
+    echo "❌ deploy/docker-compose.yml not found!"
+    echo "   Make sure you cloned the repository correctly"
+    exit 1
+fi
 
 # Stop any existing containers
 echo "🛑 Stopping existing containers..."
