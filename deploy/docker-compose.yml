@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  spjin-app:
+    build: .
+    container_name: spjin-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - JWT_SECRET=${JWT_SECRET:-change-this-in-production}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - spjin-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  nginx:
+    image: nginx:alpine
+    container_name: spjin-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/sites-available:/etc/nginx/sites-available:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - spjin-app
+    networks:
+      - spjin-network
+
+networks:
+  spjin-network:
+    driver: bridge
+
+volumes:
+  spjin-data:
+    driver: local

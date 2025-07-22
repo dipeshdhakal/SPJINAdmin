@@ -5,8 +5,22 @@ import Leaf
 import JWT
 
 public func configure(_ app: Application) throws {
-    // Configure SQLite database
-    let databasePath = app.environment == .production ? "/app/data/db.sqlite" : "db.sqlite"
+    // Configure SQLite database with environment-based path
+    let databasePath: String
+    if let envPath = Environment.get("DATABASE_PATH") {
+        databasePath = envPath
+    } else {
+        // Default paths based on environment
+        databasePath = app.environment == .production ? "/app/data/db.sqlite" : "db.sqlite"
+    }
+    
+    // Ensure directory exists for production
+    if app.environment == .production {
+        let url = URL(fileURLWithPath: databasePath)
+        let directory = url.deletingLastPathComponent()
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    }
+    
     app.databases.use(.sqlite(.file(databasePath)), as: .sqlite)
     
     // Configure Leaf templating

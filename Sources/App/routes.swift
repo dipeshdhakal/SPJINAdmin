@@ -2,6 +2,15 @@ import Vapor
 import Fluent
 
 func routes(_ app: Application) throws {
+    // Health check endpoint (public)
+    app.get("health") { req async throws in
+        return [
+            "status": "healthy",
+            "timestamp": String(Date().timeIntervalSince1970),
+            "version": "1.0.0"
+        ]
+    }
+    
     // Authentication routes (public)
     try app.register(collection: AuthController())
     
