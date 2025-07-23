@@ -220,6 +220,24 @@ cd /opt/spjin && ./deploy/oc-commands.sh status
 
 ## 🆘 Troubleshooting Quick Fixes
 
+### Build stuck at Swift compilation?
+```bash
+# This is common on Oracle Cloud free tier due to limited RAM
+# Run the fix script:
+chmod +x deploy/fix-stuck-build.sh
+./deploy/fix-stuck-build.sh
+
+# Or manually fix:
+docker-compose down
+docker system prune -f
+# Add swap space:
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+# Retry with low-memory build
+```
+
 ### Missing deployment files error?
 ```bash
 # Verify all files are present
