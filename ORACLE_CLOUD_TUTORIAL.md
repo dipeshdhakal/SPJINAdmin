@@ -220,6 +220,22 @@ cd /opt/spjin && ./deploy/oc-commands.sh status
 
 ## 🆘 Troubleshooting Quick Fixes
 
+### Need to start completely fresh? (Nuclear option)
+```bash
+# Complete cleanup - removes EVERYTHING and frees all memory
+chmod +x deploy/complete-cleanup.sh
+./deploy/complete-cleanup.sh
+
+# Or emergency one-liner:
+chmod +x deploy/emergency-cleanup.sh
+./deploy/emergency-cleanup.sh
+
+# Then start fresh:
+git clone https://github.com/dipeshdhakal/SPJINAdmin.git .
+chmod +x deploy/*.sh
+./deploy/deploy.sh YOUR_DOMAIN_OR_IP
+```
+
 ### Build stuck at Swift compilation?
 ```bash
 # This is common on Oracle Cloud free tier due to limited RAM
